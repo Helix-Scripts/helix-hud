@@ -1,0 +1,22 @@
+{
+  "$schema": "https://raw.githubusercontent.com/sumneko/vscode-lua/master/setting/schema.json",
+  "runtime.version": "Lua 5.4",
+  "diagnostics": {
+    "globals": [
+      "Config",
+      "CreateThread",
+      "Wait",
+      "PlayerPedId",
+      "GetEntityHealth",
+      "GetPedArmour",
+      "SendNUIMessage",
+      "RegisterNUICallback",
+      "GetCurrentResourceName",
+      "GetResourceMetadata"
+    ]
+  },
+  "workspace": {
+    "library": [],
+    "checkThirdParty": false
+  }
+}
