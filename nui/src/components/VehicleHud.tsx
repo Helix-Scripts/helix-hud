@@ -8,14 +8,14 @@ interface VehicleHudProps {
 }
 
 function VehicleHudComponent({ data, showSeatbelt }: VehicleHudProps) {
-  if (!data.active) return null;
-
   const fuelStyle = useMemo(
     () => ({
       width: `${Math.max(0, Math.min(100, data.fuel))}%`,
     }),
     [data.fuel],
   );
+
+  if (!data.active) return null;
 
   const unitLabel = data.speedUnit === 'mph' ? 'MPH' : 'KM/H';
 
