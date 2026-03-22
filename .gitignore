@@ -17,3 +17,6 @@ Thumbs.db
 # Environment
 .env
 .env.local
+
+# Generated build artifacts
+docs/screenshots/bg-city-night.png
