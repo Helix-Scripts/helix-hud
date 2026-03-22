@@ -138,3 +138,20 @@ globals:
   # Config global
   Config:
     any: true
+  # fxmanifest extra fields
+  repository:
+    any: true
+  dependency:
+    any: true
+  dependencies:
+    any: true
+  # Entity namespace
+  Entity:
+    any: true
+  # Resource module globals (shared scope within resource)
+  StatusModule:
+    any: true
+  VehicleModule:
+    any: true
+  HudUtils:
+    any: true
