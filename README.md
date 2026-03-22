@@ -39,6 +39,10 @@ Edit `config.lua` to toggle HUD elements and adjust the update interval:
 | `ShowStress`     | boolean | `true`  | Display the stress bar               |
 | `UpdateInterval` | number  | `200`   | Status update frequency (ms)         |
 
+## Contributing
+
+Please see the [organisation contributing guidelines](https://github.com/Helix-Scripts/.github/blob/main/CONTRIBUTING.md).
+
 ## License
 
 This project is licensed under the [MIT License](LICENSE).
