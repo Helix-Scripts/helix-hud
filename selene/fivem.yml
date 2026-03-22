@@ -1,12 +1,57 @@
 ---
-base: lua54
+base: lua51
 name: fivem
 globals:
-  GetCurrentResourceName:
+  # fxmanifest globals
+  fx_version:
     any: true
-  GetResourceState:
+  game:
     any: true
-  LoadResourceFile:
+  name:
+    any: true
+  author:
+    any: true
+  description:
+    any: true
+  version:
+    any: true
+  url:
+    any: true
+  lua54:
+    any: true
+  shared_scripts:
+    any: true
+  client_scripts:
+    any: true
+  server_scripts:
+    any: true
+  ui_page:
+    any: true
+  shared_script:
+    any: true
+  client_script:
+    any: true
+  server_script:
+    any: true
+  files:
+    any: true
+  # CFX runtime globals
+  exports:
+    property: read-only
+  Citizen:
+    property: read-only
+  json:
+    property: read-only
+  promise:
+    property: read-only
+  lib:
+    property: read-only
+  source:
+    property: read-only
+  # Common CFX functions
+  CreateThread:
+    any: true
+  Wait:
     any: true
   RegisterNetEvent:
     any: true
@@ -28,14 +73,21 @@ globals:
     any: true
   SetNuiFocus:
     any: true
-  exports:
-    property: read-only
-  Citizen:
-    property: read-only
-  CreateThread:
+  GetCurrentResourceName:
     any: true
-  Wait:
+  GetResourceState:
     any: true
+  GetResourceMetadata:
+    any: true
+  LoadResourceFile:
+    any: true
+  IsDuplicityVersion:
+    any: true
+  PerformHttpRequest:
+    any: true
+  GetGameTimer:
+    any: true
+  # Player natives
   PlayerPedId:
     any: true
   PlayerId:
@@ -44,22 +96,35 @@ globals:
     any: true
   GetPlayerServerId:
     any: true
-  GetEntityCoords:
-    any: true
-  GetPlayers:
-    any: true
-  IsDuplicityVersion:
-    any: true
-  PerformHttpRequest:
+  GetPlayerStamina:
     any: true
   GetPlayerIdentifiers:
     any: true
   IsPlayerAceAllowed:
     any: true
-  json:
-    property: read-only
-  promise:
-    property: read-only
+  GetPlayers:
+    any: true
+  # Entity natives
+  GetEntityHealth:
+    any: true
+  GetEntityMaxHealth:
+    any: true
+  GetEntitySpeed:
+    any: true
+  GetEntityCoords:
+    any: true
+  GetPedArmour:
+    any: true
+  # Vehicle natives
+  GetVehiclePedIsIn:
+    any: true
+  GetVehicleFuelLevel:
+    any: true
+  GetIsVehicleEngineRunning:
+    any: true
+  IsPauseMenuActive:
+    any: true
+  # Math/vector
   joaat:
     any: true
   vec3:
@@ -70,9 +135,6 @@ globals:
     any: true
   vector4:
     any: true
-  source:
-    property: read-only
-  lib:
-    property: read-only
-  GetGameTimer:
+  # Config global
+  Config:
     any: true
