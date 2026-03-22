@@ -1,4 +1,5 @@
 import { memo, useMemo } from 'react';
+import { Fuel, Cog, Siren } from 'lucide-react';
 import type { VehicleData } from '../types';
 import styles from '../styles/hud.module.css';
 
@@ -19,6 +20,10 @@ function VehicleHudComponent({ data, showSeatbelt }: VehicleHudProps) {
 
   const unitLabel = data.speedUnit === 'mph' ? 'MPH' : 'KM/H';
 
+  const seatbeltClass = data.seatbelt
+    ? `${styles.indicator} ${styles.seatbeltActive}`
+    : `${styles.indicator} ${styles.indicatorWarning}`;
+
   return (
     <div className={`${styles.vehicleHud} ${styles.vehicleSlideIn}`}>
       <div className={styles.vehicleSpeed}>
@@ -28,7 +33,9 @@ function VehicleHudComponent({ data, showSeatbelt }: VehicleHudProps) {
 
       <div className={styles.vehicleRow}>
         <div className={styles.fuelContainer}>
-          <span className={styles.fuelIcon}>⛽</span>
+          <span className={styles.fuelIcon}>
+            <Fuel size={12} strokeWidth={2} />
+          </span>
           <div className={styles.fuelTrack}>
             <div
               className={`${styles.fuelFill} ${data.fuel <= 15 ? styles.fuelLow : ''}`}
@@ -42,14 +49,11 @@ function VehicleHudComponent({ data, showSeatbelt }: VehicleHudProps) {
             className={`${styles.indicator} ${data.engine ? styles.indicatorActive : styles.indicatorOff}`}
             title="Engine"
           >
-            ⚙
+            <Cog size={14} strokeWidth={2} />
           </span>
           {showSeatbelt && (
-            <span
-              className={`${styles.indicator} ${data.seatbelt ? styles.indicatorActive : styles.indicatorWarning}`}
-              title="Seatbelt"
-            >
-              🔒
+            <span className={seatbeltClass} title="Seatbelt">
+              <Siren size={14} strokeWidth={2} />
             </span>
           )}
         </div>

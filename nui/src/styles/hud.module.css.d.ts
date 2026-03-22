@@ -30,6 +30,8 @@ declare const styles: {
   readonly indicatorActive: string;
   readonly indicatorOff: string;
   readonly indicatorWarning: string;
+  readonly seatbeltActive: string;
+  readonly barFillCritical: string;
 };
 
 export default styles;

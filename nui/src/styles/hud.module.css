@@ -1,6 +1,6 @@
 /* ---------------------------------------------------------------------------
  * Helix HUD — CSS Module
- * Minimal, clean design with smooth animations
+ * Refined Glassmorphism design — v2.0
  * --------------------------------------------------------------------------- */
 
 /* Container positions */
@@ -8,75 +8,93 @@
   position: fixed;
   display: flex;
   flex-direction: column;
-  gap: 4px;
+  gap: 6px;
   z-index: 1000;
   pointer-events: none;
   opacity: 1;
-  transition: opacity 0.3s ease;
+  transition: opacity 0.3s ease, transform 0.3s ease;
 }
 
 .hudContainer.hidden {
   opacity: 0;
+  transform: translateY(8px);
 }
 
 .positionBottomRight {
-  bottom: 28px;
-  right: 28px;
+  bottom: 24px;
+  right: 24px;
   align-items: flex-end;
 }
 
 .positionBottomLeft {
-  bottom: 28px;
-  left: 28px;
+  bottom: 24px;
+  left: 24px;
   align-items: flex-start;
 }
 
 .positionBottomCenter {
-  bottom: 28px;
+  bottom: 24px;
   left: 50%;
   transform: translateX(-50%);
   align-items: center;
 }
 
 /* ---------------------------------------------------------------------------
- * Status Bars
+ * Status Bars — Glassmorphism Container
  * --------------------------------------------------------------------------- */
 
 .statusBars {
   display: flex;
   flex-direction: column;
-  gap: 3px;
-  min-width: 160px;
+  gap: 5px;
+  min-width: 180px;
+  max-width: 200px;
+  padding: 10px 12px;
+  background: rgba(10, 10, 18, 0.65);
+  border-radius: 10px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  backdrop-filter: blur(12px) saturate(150%);
+  box-shadow:
+    0 4px 16px rgba(0, 0, 0, 0.3),
+    inset 0 1px 0 rgba(255, 255, 255, 0.05);
 }
 
 .statusBar {
   display: flex;
   align-items: center;
-  gap: 6px;
+  gap: 8px;
 }
 
 .statusIcon {
-  font-size: 10px;
-  width: 14px;
-  text-align: center;
-  opacity: 0.7;
-  filter: drop-shadow(0 0 2px rgba(0, 0, 0, 0.5));
+  width: 18px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
 }
 
 .barTrack {
   flex: 1;
-  height: 6px;
-  background: rgba(0, 0, 0, 0.45);
-  border-radius: 3px;
+  height: 8px;
+  background: rgba(255, 255, 255, 0.08);
+  border-radius: 4px;
   overflow: hidden;
-  backdrop-filter: blur(4px);
 }
 
 .barFill {
   height: 100%;
-  border-radius: 3px;
-  transition: width 0.35s cubic-bezier(0.4, 0, 0.2, 1);
-  box-shadow: 0 0 6px rgba(255, 255, 255, 0.1);
+  border-radius: 4px;
+  transition: width 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+}
+
+/* Critical state pulse for bars <= 20% */
+.barFillCritical {
+  animation: criticalPulse 2s ease-in-out infinite;
+}
+
+@keyframes criticalPulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.65; }
 }
 
 /* ---------------------------------------------------------------------------
@@ -92,30 +110,34 @@
 }
 
 .infoTag {
-  font-size: 11px;
+  font-size: 10px;
   font-weight: 500;
   color: rgba(255, 255, 255, 0.65);
-  background: rgba(0, 0, 0, 0.35);
-  padding: 2px 8px;
-  border-radius: 4px;
-  backdrop-filter: blur(4px);
-  letter-spacing: 0.02em;
+  background: rgba(10, 10, 18, 0.65);
+  padding: 3px 10px;
+  border-radius: 6px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  backdrop-filter: blur(12px) saturate(150%);
+  letter-spacing: 0.03em;
+  box-shadow:
+    0 4px 16px rgba(0, 0, 0, 0.3),
+    inset 0 1px 0 rgba(255, 255, 255, 0.05);
 }
 
 .infoCash {
   font-size: 12px;
   font-weight: 600;
   color: #4ade80;
-  text-shadow: 0 0 8px rgba(74, 222, 128, 0.3);
-  letter-spacing: 0.02em;
+  text-shadow: 0 0 10px rgba(74, 222, 128, 0.25);
+  letter-spacing: 0.01em;
 }
 
 .infoBank {
   font-size: 12px;
   font-weight: 600;
   color: #60a5fa;
-  text-shadow: 0 0 8px rgba(96, 165, 250, 0.3);
-  letter-spacing: 0.02em;
+  text-shadow: 0 0 10px rgba(96, 165, 250, 0.25);
+  letter-spacing: 0.01em;
 }
 
 /* ---------------------------------------------------------------------------
@@ -125,28 +147,30 @@
 .vehicleHud {
   display: flex;
   flex-direction: column;
-  gap: 6px;
-  margin-top: 8px;
-  padding: 10px 14px;
-  background: rgba(0, 0, 0, 0.4);
-  border-radius: 8px;
-  backdrop-filter: blur(8px);
-  border: 1px solid rgba(255, 255, 255, 0.06);
-  min-width: 160px;
+  gap: 8px;
+  padding: 12px 14px;
+  background: rgba(10, 10, 18, 0.65);
+  border-radius: 10px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  backdrop-filter: blur(12px) saturate(150%);
+  box-shadow:
+    0 4px 16px rgba(0, 0, 0, 0.3),
+    inset 0 1px 0 rgba(255, 255, 255, 0.05);
+  min-width: 180px;
 }
 
 .vehicleSlideIn {
-  animation: slideIn 0.3s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+  animation: vehicleSlideIn 0.35s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards;
 }
 
-@keyframes slideIn {
+@keyframes vehicleSlideIn {
   from {
     opacity: 0;
-    transform: translateY(12px);
+    transform: translateY(12px) scale(0.97);
   }
   to {
     opacity: 1;
-    transform: translateY(0);
+    transform: translateY(0) scale(1);
   }
 }
 
@@ -157,20 +181,20 @@
 }
 
 .speedValue {
-  font-size: 24px;
+  font-size: 28px;
   font-weight: 700;
   color: #ffffff;
   line-height: 1;
   font-variant-numeric: tabular-nums;
-  letter-spacing: -0.02em;
+  letter-spacing: -0.03em;
 }
 
 .speedUnit {
   font-size: 10px;
-  font-weight: 500;
-  color: rgba(255, 255, 255, 0.45);
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.4);
   text-transform: uppercase;
-  letter-spacing: 0.06em;
+  letter-spacing: 0.08em;
 }
 
 .vehicleRow {
@@ -187,85 +211,98 @@
 }
 
 .fuelIcon {
-  font-size: 10px;
-  opacity: 0.6;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: rgba(255, 255, 255, 0.6);
 }
 
 .fuelTrack {
   flex: 1;
-  height: 4px;
-  background: rgba(255, 255, 255, 0.1);
-  border-radius: 2px;
+  height: 5px;
+  background: rgba(255, 255, 255, 0.08);
+  border-radius: 2.5px;
   overflow: hidden;
 }
 
 .fuelFill {
   height: 100%;
-  background: #4ade80;
-  border-radius: 2px;
+  background: linear-gradient(90deg, #22c55e, #4ade80);
+  border-radius: 2.5px;
+  box-shadow: 0 0 8px rgba(74, 222, 128, 0.4);
   transition: width 0.5s ease;
 }
 
 .fuelFill.fuelLow {
-  background: #ef4444;
+  background: linear-gradient(90deg, #dc2626, #ef4444);
+  box-shadow: 0 0 8px rgba(239, 68, 68, 0.4);
   animation: fuelPulse 1.5s ease-in-out infinite;
 }
 
 @keyframes fuelPulse {
-  0%,
-  100% {
-    opacity: 1;
-  }
-  50% {
-    opacity: 0.5;
-  }
+  0%, 100% { opacity: 1; box-shadow: 0 0 8px rgba(239, 68, 68, 0.4); }
+  50% { opacity: 0.6; box-shadow: 0 0 12px rgba(239, 68, 68, 0.6); }
 }
 
 .vehicleIndicators {
   display: flex;
   gap: 6px;
+  align-items: center;
 }
 
 .indicator {
-  font-size: 12px;
-  opacity: 0.4;
-  transition: opacity 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: opacity 0.2s ease, color 0.2s ease;
 }
 
 .indicatorActive {
-  opacity: 1;
+  color: rgba(255, 255, 255, 0.7);
 }
 
 .indicatorOff {
-  opacity: 0.25;
+  color: rgba(255, 255, 255, 0.2);
 }
 
 .indicatorWarning {
-  opacity: 1;
-  animation: indicatorBlink 1s ease-in-out infinite;
+  color: #ef4444;
+  animation: seatbeltBlink 0.8s ease-in-out infinite;
 }
 
-@keyframes indicatorBlink {
-  0%,
-  100% {
-    opacity: 1;
-  }
-  50% {
-    opacity: 0.3;
-  }
+.seatbeltActive {
+  color: #4ade80;
+}
+
+@keyframes seatbeltBlink {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.3; }
 }
 
 /* ---------------------------------------------------------------------------
  * Light Theme Overrides
  * --------------------------------------------------------------------------- */
 
+.themeLight .statusBars {
+  background: rgba(255, 255, 255, 0.55);
+  border: 1px solid rgba(0, 0, 0, 0.06);
+  backdrop-filter: blur(12px) saturate(130%);
+  box-shadow:
+    0 4px 16px rgba(0, 0, 0, 0.08),
+    inset 0 1px 0 rgba(255, 255, 255, 0.7);
+}
+
 .themeLight .barTrack {
-  background: rgba(0, 0, 0, 0.12);
+  background: rgba(0, 0, 0, 0.08);
 }
 
 .themeLight .infoTag {
   color: rgba(0, 0, 0, 0.6);
-  background: rgba(255, 255, 255, 0.7);
+  background: rgba(255, 255, 255, 0.55);
+  border: 1px solid rgba(0, 0, 0, 0.06);
+  box-shadow:
+    0 4px 16px rgba(0, 0, 0, 0.08),
+    inset 0 1px 0 rgba(255, 255, 255, 0.7);
 }
 
 .themeLight .infoCash {
@@ -277,8 +314,12 @@
 }
 
 .themeLight .vehicleHud {
-  background: rgba(255, 255, 255, 0.65);
-  border: 1px solid rgba(0, 0, 0, 0.08);
+  background: rgba(255, 255, 255, 0.55);
+  border: 1px solid rgba(0, 0, 0, 0.06);
+  backdrop-filter: blur(12px) saturate(130%);
+  box-shadow:
+    0 4px 16px rgba(0, 0, 0, 0.08),
+    inset 0 1px 0 rgba(255, 255, 255, 0.7);
 }
 
 .themeLight .speedValue {
