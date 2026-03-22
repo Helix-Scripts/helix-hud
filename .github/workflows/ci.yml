@@ -1,0 +1,16 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  lua-lint:
+    name: Lua Lint
+    uses: Helix-Scripts/.github/.github/workflows/lua-lint.yml@main
+
+  nui-build:
+    name: NUI Build
+    uses: Helix-Scripts/.github/.github/workflows/nui-build.yml@main

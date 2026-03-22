@@ -1,0 +1,78 @@
+---
+base: lua54
+name: fivem
+globals:
+  GetCurrentResourceName:
+    any: true
+  GetResourceState:
+    any: true
+  LoadResourceFile:
+    any: true
+  RegisterNetEvent:
+    any: true
+  AddEventHandler:
+    any: true
+  TriggerEvent:
+    any: true
+  TriggerServerEvent:
+    any: true
+  TriggerClientEvent:
+    any: true
+  RegisterServerEvent:
+    any: true
+  RegisterCommand:
+    any: true
+  RegisterNUICallback:
+    any: true
+  SendNUIMessage:
+    any: true
+  SetNuiFocus:
+    any: true
+  exports:
+    property: read-only
+  Citizen:
+    property: read-only
+  CreateThread:
+    any: true
+  Wait:
+    any: true
+  PlayerPedId:
+    any: true
+  PlayerId:
+    any: true
+  GetPlayerPed:
+    any: true
+  GetPlayerServerId:
+    any: true
+  GetEntityCoords:
+    any: true
+  GetPlayers:
+    any: true
+  IsDuplicityVersion:
+    any: true
+  PerformHttpRequest:
+    any: true
+  GetPlayerIdentifiers:
+    any: true
+  IsPlayerAceAllowed:
+    any: true
+  json:
+    property: read-only
+  promise:
+    property: read-only
+  joaat:
+    any: true
+  vec3:
+    any: true
+  vec4:
+    any: true
+  vector3:
+    any: true
+  vector4:
+    any: true
+  source:
+    property: read-only
+  lib:
+    property: read-only
+  GetGameTimer:
+    any: true
