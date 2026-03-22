@@ -1,0 +1,35 @@
+declare const styles: {
+  readonly hudContainer: string;
+  readonly hidden: string;
+  readonly positionBottomRight: string;
+  readonly positionBottomLeft: string;
+  readonly positionBottomCenter: string;
+  readonly themeLight: string;
+  readonly statusBars: string;
+  readonly statusBar: string;
+  readonly statusIcon: string;
+  readonly barTrack: string;
+  readonly barFill: string;
+  readonly playerInfo: string;
+  readonly infoTag: string;
+  readonly infoCash: string;
+  readonly infoBank: string;
+  readonly vehicleHud: string;
+  readonly vehicleSlideIn: string;
+  readonly vehicleSpeed: string;
+  readonly speedValue: string;
+  readonly speedUnit: string;
+  readonly vehicleRow: string;
+  readonly fuelContainer: string;
+  readonly fuelIcon: string;
+  readonly fuelTrack: string;
+  readonly fuelFill: string;
+  readonly fuelLow: string;
+  readonly vehicleIndicators: string;
+  readonly indicator: string;
+  readonly indicatorActive: string;
+  readonly indicatorOff: string;
+  readonly indicatorWarning: string;
+};
+
+export default styles;

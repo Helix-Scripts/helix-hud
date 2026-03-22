@@ -1,6 +1,34 @@
-local lib = exports.helix_lib:getLib()
+--- helix_hud server entry point
+--- Handles player data requests for money and job info.
 
---- Perform a version check on resource start
+--- Handle player data request from client
+RegisterNetEvent('helix_hud:requestPlayerData', function()
+    local src = source
+    if not src or src <= 0 then
+        return
+    end
+
+    local Bridge = exports['helix_lib']:bridge()
+    if not Bridge then
+        return
+    end
+
+    local player = Bridge.GetPlayer(src)
+    if not player then
+        return
+    end
+
+    local data = {
+        cash = player.money and player.money.cash or 0,
+        bank = player.money and player.money.bank or 0,
+        job = player.job and player.job.label or '',
+    }
+
+    TriggerClientEvent('helix_hud:playerData', src, data)
+end)
+
+--- Version check on start
 CreateThread(function()
-    lib.print.info(('helix-hud v%s loaded'):format(GetResourceMetadata(GetCurrentResourceName(), 'version', 0)))
+    local currentVersion = GetResourceMetadata(GetCurrentResourceName(), 'version', 0)
+    print(('[helix_hud] ^2v%s loaded^0'):format(currentVersion or '0.0.0'))
 end)

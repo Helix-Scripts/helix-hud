@@ -1,44 +1,219 @@
-local lib = exports.helix_lib:getLib()
+--- helix_hud client entry point
+--- Manages polling threads and NUI communication.
+--- Performance target: < 0.05ms idle resmon
 
---- Send current player status data to the NUI
-local function sendStatusToNui()
-    local ped = PlayerPedId()
+local isHudVisible = false
+local isNuiReady = false
+local isPauseMenuActive = false
+
+--- Player info (event-driven, not polled)
+local playerInfo = {
+    cash = 0,
+    bank = 0,
+    job = '',
+    serverId = 0,
+}
+
+-- ---------------------------------------------------------------------------
+-- NUI Communication
+-- ---------------------------------------------------------------------------
+
+--- Send a batched HUD update to NUI
+local function sendHudUpdate()
+    if not isNuiReady or not isHudVisible then
+        return
+    end
 
     SendNUIMessage({
-        action = 'updateStatus',
-        data = {
-            health = GetEntityHealth(ped) - 100, -- 0-100 range
-            armor = GetPedArmour(ped),
-            hunger = 100, -- TODO: integrate with helix_lib needs system
-            thirst = 100, -- TODO: integrate with helix_lib needs system
-            stress = 0,   -- TODO: integrate with helix_lib stress system
+        action = 'updateHud',
+        status = StatusModule.get(),
+        vehicle = VehicleModule.get(),
+        playerInfo = playerInfo,
+        config = {
+            elements = Config.elements,
+            vehicle = Config.vehicle,
+            theme = Config.theme,
+            position = Config.position,
+            scale = Config.scale,
         },
     })
 end
 
---- Toggle HUD visibility
+--- Show or hide the HUD
 ---@param visible boolean
 local function setHudVisible(visible)
-    SendNUIMessage({
-        action = 'setVisible',
-        data = { visible = visible },
-    })
+    isHudVisible = visible
+    if isNuiReady then
+        SendNUIMessage({
+            action = 'setVisible',
+            visible = visible,
+        })
+    end
 end
 
--- NUI Callbacks
-RegisterNUICallback('hudReady', function(_, cb)
-    lib.print.info('HUD NUI ready')
-    cb('ok')
+-- ---------------------------------------------------------------------------
+-- Player Info (event-driven)
+-- ---------------------------------------------------------------------------
+
+--- Fetch initial player data from server
+local function fetchPlayerInfo()
+    playerInfo.serverId = GetPlayerServerId(PlayerId())
+    TriggerServerEvent('helix_hud:requestPlayerData')
+end
+
+--- Handle player data response from server
+RegisterNetEvent('helix_hud:playerData', function(data)
+    if data.cash ~= nil then
+        playerInfo.cash = data.cash
+    end
+    if data.bank ~= nil then
+        playerInfo.bank = data.bank
+    end
+    if data.job ~= nil then
+        playerInfo.job = data.job
+    end
 end)
 
--- Status update loop
-CreateThread(function()
-    -- Wait for NUI to initialise
-    Wait(1000)
-    setHudVisible(true)
+-- ---------------------------------------------------------------------------
+-- Framework Event Listeners (money/job changes — no polling needed)
+-- ---------------------------------------------------------------------------
 
-    while true do
-        sendStatusToNui()
-        Wait(Config.UpdateInterval or 200)
+local function registerFrameworkEvents()
+    local Bridge = exports['helix_lib']:bridge()
+    if not Bridge then
+        return
     end
+
+    local fw = Bridge.getFramework()
+
+    if fw == 'qbox' or fw == 'qbcore' then
+        -- QBCore/Qbox: listen for PlayerData updates
+        RegisterNetEvent('QBCore:Player:SetPlayerData', function(PlayerData)
+            if PlayerData.money then
+                playerInfo.cash = PlayerData.money.cash or 0
+                playerInfo.bank = PlayerData.money.bank or 0
+            end
+            if PlayerData.job then
+                playerInfo.job = PlayerData.job.label or ''
+            end
+        end)
+
+        RegisterNetEvent('QBCore:Client:OnPlayerLoaded', function()
+            fetchPlayerInfo()
+        end)
+    elseif fw == 'esx' then
+        RegisterNetEvent('esx:setAccountMoney', function(account)
+            if account.name == 'money' or account.name == 'cash' then
+                playerInfo.cash = account.money or 0
+            elseif account.name == 'bank' then
+                playerInfo.bank = account.money or 0
+            end
+        end)
+
+        RegisterNetEvent('esx:setJob', function(job)
+            playerInfo.job = job.label or ''
+        end)
+
+        RegisterNetEvent('esx:playerLoaded', function()
+            fetchPlayerInfo()
+        end)
+    end
+end
+
+-- ---------------------------------------------------------------------------
+-- NUI Callbacks
+-- ---------------------------------------------------------------------------
+
+RegisterNUICallback('hudReady', function(_, cb)
+    isNuiReady = true
+    cb('ok')
+
+    -- Send initial state
+    setHudVisible(true)
+    sendHudUpdate()
+end)
+
+-- ---------------------------------------------------------------------------
+-- Polling Threads
+-- ---------------------------------------------------------------------------
+
+--- Status polling thread (health, armor, hunger, thirst, stress, stamina)
+local function startStatusThread()
+    CreateThread(function()
+        while true do
+            if isHudVisible and not isPauseMenuActive then
+                StatusModule.pollNatives()
+                StatusModule.pollFramework()
+                sendHudUpdate()
+            end
+            Wait(Config.updateIntervals.health)
+        end
+    end)
+end
+
+--- Vehicle polling thread (speed, fuel, seatbelt, engine)
+local function startVehicleThread()
+    if not Config.vehicle.enabled then
+        return
+    end
+
+    CreateThread(function()
+        while true do
+            if isHudVisible and not isPauseMenuActive then
+                local ped = PlayerPedId()
+                local vehicle = GetVehiclePedIsIn(ped, false)
+
+                if vehicle ~= 0 then
+                    VehicleModule.poll(vehicle)
+                else
+                    if VehicleModule.get().active then
+                        VehicleModule.reset()
+                        sendHudUpdate()
+                    end
+                end
+            end
+            Wait(Config.updateIntervals.vehicle)
+        end
+    end)
+end
+
+--- Pause menu detection thread
+local function startPauseMenuThread()
+    if not Config.hideInPauseMenu then
+        return
+    end
+
+    CreateThread(function()
+        while true do
+            local paused = IsPauseMenuActive()
+            if paused ~= isPauseMenuActive then
+                isPauseMenuActive = paused
+                setHudVisible(not paused)
+            end
+            Wait(500)
+        end
+    end)
+end
+
+-- ---------------------------------------------------------------------------
+-- Initialization
+-- ---------------------------------------------------------------------------
+
+CreateThread(function()
+    -- Wait for helix_lib to be ready
+    while GetResourceState('helix_lib') ~= 'started' do
+        Wait(100)
+    end
+
+    -- Small delay to let framework initialize
+    Wait(1000)
+
+    playerInfo.serverId = GetPlayerServerId(PlayerId())
+
+    registerFrameworkEvents()
+    fetchPlayerInfo()
+
+    startStatusThread()
+    startVehicleThread()
+    startPauseMenuThread()
 end)

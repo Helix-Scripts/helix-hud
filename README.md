@@ -1,18 +1,51 @@
 # Helix HUD
 
-A modern, customizable HUD for FiveM servers built with React and TypeScript, powered by [helix_lib](https://github.com/helix-scripts/helix-lib).
+A high-performance, customizable HUD for FiveM servers. Built with React + TypeScript and powered by [helix_lib](https://github.com/Helix-Scripts/helix-lib).
+
+**Sub-0.05ms idle resmon** — performance is the brand.
 
 ## Features
 
-- Health, armor, hunger, thirst, and stress indicators
-- Smooth animated status bars
-- Lightweight React-based NUI
-- Configurable update interval and visibility toggles
-- Integrated with helix_lib configuration system
+### Status Bars
+- **Health** — synced to player health
+- **Armor** — synced to player armor (hidden when 0)
+- **Hunger** — framework-dependent (Qbox/QBCore/ESX)
+- **Thirst** — framework-dependent
+- **Stress** — framework-dependent (off by default)
+- **Stamina** — from native GetPlayerStamina (hidden when full)
+
+### Info Display
+- Cash / Bank balance (event-driven, not polled)
+- Job title from framework
+- Server ID
+
+### Vehicle HUD
+- Speed (km/h or mph toggle)
+- Fuel level (auto-detects LegacyFuel, ox_fuel, cdn-fuel)
+- Seatbelt indicator
+- Engine status
+- Smooth slide-in animation on vehicle entry
+
+### Performance
+- Health/armor/stamina: polled every 200ms (configurable)
+- Cash/job: event-driven only — zero polling overhead
+- Vehicle data: polled every 100ms only when in vehicle
+- NUI updates batched — single message per tick
+- All polling stops when HUD is hidden or pause menu is open
+- **NUI bundle: ~48 KB gzipped**
+
+## Supported Frameworks
+
+| Framework | Status | Notes |
+|-----------|--------|-------|
+| Qbox | Full support | Primary target |
+| QBCore | Full support | |
+| ESX | Full support | |
+| Standalone | Partial | Health/armor/stamina only |
 
 ## Dependencies
 
-- [helix_lib](https://github.com/helix-scripts/helix-lib) - Required shared library
+- [helix_lib](https://github.com/Helix-Scripts/helix-lib) — required shared library
 
 ## Installation
 
@@ -24,20 +57,47 @@ A modern, customizable HUD for FiveM servers built with React and TypeScript, po
    npm install
    npm run build
    ```
-4. Add `ensure helix-hud` to your `server.cfg` (after `ensure helix_lib`).
+4. Add `ensure helix_hud` to your `server.cfg` (after `ensure helix_lib`).
 
 ## Configuration
 
-Edit `config.lua` to toggle HUD elements and adjust the update interval:
+Edit `config.lua` to customize the HUD. Everything is toggleable:
 
-| Option           | Type    | Default | Description                          |
-|------------------|---------|---------|--------------------------------------|
-| `ShowHealth`     | boolean | `true`  | Display the health bar               |
-| `ShowArmor`      | boolean | `true`  | Display the armor bar                |
-| `ShowHunger`     | boolean | `true`  | Display the hunger bar               |
-| `ShowThirst`     | boolean | `true`  | Display the thirst bar               |
-| `ShowStress`     | boolean | `true`  | Display the stress bar               |
-| `UpdateInterval` | number  | `200`   | Status update frequency (ms)         |
+```lua
+Config = {
+    framework = 'auto',
+
+    elements = {
+        health = true,
+        armor = true,
+        hunger = true,
+        thirst = true,
+        stress = false,    -- off by default
+        stamina = true,
+        cash = true,
+        bank = false,      -- off by default for privacy
+        job = true,
+        serverId = true,
+    },
+
+    vehicle = {
+        enabled = true,
+        speedUnit = 'kmh', -- 'kmh' or 'mph'
+        fuelScript = 'auto',
+        seatbelt = true,
+    },
+
+    theme = 'dark',            -- 'dark' or 'light'
+    position = 'bottom-right', -- 'bottom-right', 'bottom-left', 'bottom-center'
+    scale = 1.0,
+    hideInPauseMenu = true,
+
+    updateIntervals = {
+        health = 200,
+        vehicle = 100,
+    },
+}
+```
 
 ## Contributing
 

@@ -1,11 +1,38 @@
-Config = Config or {}
+---@class HelixHudConfig
+Config = {
+    framework = 'auto', -- auto-detect or force: 'qbox', 'qbcore', 'esx', 'standalone'
 
---- HUD display toggles
-Config.ShowHealth = true
-Config.ShowArmor = true
-Config.ShowHunger = true
-Config.ShowThirst = true
-Config.ShowStress = true
+    -- Toggle individual elements
+    elements = {
+        health = true,
+        armor = true,
+        hunger = true,
+        thirst = true,
+        stress = false, -- off by default, not all servers use it
+        stamina = true,
+        cash = true,
+        bank = false, -- off by default for privacy
+        job = true,
+        serverId = true,
+    },
 
---- How often (in ms) the HUD data is pushed to the NUI
-Config.UpdateInterval = 200
+    -- Vehicle HUD
+    vehicle = {
+        enabled = true,
+        speedUnit = 'kmh', -- 'kmh' or 'mph'
+        fuelScript = 'auto', -- auto-detect or force: 'LegacyFuel', 'ox_fuel', 'cdn-fuel'
+        seatbelt = true,
+    },
+
+    -- Visual
+    theme = 'dark', -- 'dark' or 'light'
+    position = 'bottom-right', -- 'bottom-right', 'bottom-left', 'bottom-center'
+    scale = 1.0,
+    hideInPauseMenu = true,
+
+    -- Performance tuning
+    updateIntervals = {
+        health = 200, -- ms — health, armor, hunger, thirst, stress, stamina
+        vehicle = 100, -- ms — speed, fuel, engine, seatbelt
+    },
+}

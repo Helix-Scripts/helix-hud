@@ -1,28 +1,34 @@
-fx_version 'cerulean'
-game 'gta5'
+fx_version('cerulean')
+game('gta5')
 
-author 'Helix Scripts'
-description 'Helix HUD'
-version '0.1.0'
+name('helix_hud')
+description('High-performance HUD for FiveM — sub-0.05ms idle resmon')
+author('Helix Scripts')
+version('0.1.0')
+repository('https://github.com/Helix-Scripts/helix-hud')
 
-dependency 'helix_lib'
+lua54('yes')
 
-lua54 'yes'
+dependency('helix_lib')
 
-client_scripts {
-    'client/*.lua',
-}
+shared_scripts({
+    'config.lua',
+})
 
-server_scripts {
-    'server/*.lua',
-}
+client_scripts({
+    'client/utils.lua',
+    'client/status.lua',
+    'client/vehicle.lua',
+    'client/main.lua',
+})
 
-shared_scripts {
-    'shared/*.lua',
-}
+server_scripts({
+    'server/main.lua',
+})
 
-ui_page 'html/index.html'
+ui_page('html/index.html')
 
-files {
-    'html/**/*',
-}
+files({
+    'html/index.html',
+    'html/assets/**/*',
+})

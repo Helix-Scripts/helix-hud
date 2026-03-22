@@ -1,0 +1,290 @@
+/* ---------------------------------------------------------------------------
+ * Helix HUD — CSS Module
+ * Minimal, clean design with smooth animations
+ * --------------------------------------------------------------------------- */
+
+/* Container positions */
+.hudContainer {
+  position: fixed;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  z-index: 1000;
+  pointer-events: none;
+  opacity: 1;
+  transition: opacity 0.3s ease;
+}
+
+.hudContainer.hidden {
+  opacity: 0;
+}
+
+.positionBottomRight {
+  bottom: 28px;
+  right: 28px;
+  align-items: flex-end;
+}
+
+.positionBottomLeft {
+  bottom: 28px;
+  left: 28px;
+  align-items: flex-start;
+}
+
+.positionBottomCenter {
+  bottom: 28px;
+  left: 50%;
+  transform: translateX(-50%);
+  align-items: center;
+}
+
+/* ---------------------------------------------------------------------------
+ * Status Bars
+ * --------------------------------------------------------------------------- */
+
+.statusBars {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  min-width: 160px;
+}
+
+.statusBar {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.statusIcon {
+  font-size: 10px;
+  width: 14px;
+  text-align: center;
+  opacity: 0.7;
+  filter: drop-shadow(0 0 2px rgba(0, 0, 0, 0.5));
+}
+
+.barTrack {
+  flex: 1;
+  height: 6px;
+  background: rgba(0, 0, 0, 0.45);
+  border-radius: 3px;
+  overflow: hidden;
+  backdrop-filter: blur(4px);
+}
+
+.barFill {
+  height: 100%;
+  border-radius: 3px;
+  transition: width 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: 0 0 6px rgba(255, 255, 255, 0.1);
+}
+
+/* ---------------------------------------------------------------------------
+ * Player Info
+ * --------------------------------------------------------------------------- */
+
+.playerInfo {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 4px 0;
+  flex-wrap: wrap;
+}
+
+.infoTag {
+  font-size: 11px;
+  font-weight: 500;
+  color: rgba(255, 255, 255, 0.65);
+  background: rgba(0, 0, 0, 0.35);
+  padding: 2px 8px;
+  border-radius: 4px;
+  backdrop-filter: blur(4px);
+  letter-spacing: 0.02em;
+}
+
+.infoCash {
+  font-size: 12px;
+  font-weight: 600;
+  color: #4ade80;
+  text-shadow: 0 0 8px rgba(74, 222, 128, 0.3);
+  letter-spacing: 0.02em;
+}
+
+.infoBank {
+  font-size: 12px;
+  font-weight: 600;
+  color: #60a5fa;
+  text-shadow: 0 0 8px rgba(96, 165, 250, 0.3);
+  letter-spacing: 0.02em;
+}
+
+/* ---------------------------------------------------------------------------
+ * Vehicle HUD
+ * --------------------------------------------------------------------------- */
+
+.vehicleHud {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-top: 8px;
+  padding: 10px 14px;
+  background: rgba(0, 0, 0, 0.4);
+  border-radius: 8px;
+  backdrop-filter: blur(8px);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  min-width: 160px;
+}
+
+.vehicleSlideIn {
+  animation: slideIn 0.3s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+}
+
+@keyframes slideIn {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.vehicleSpeed {
+  display: flex;
+  align-items: baseline;
+  gap: 4px;
+}
+
+.speedValue {
+  font-size: 24px;
+  font-weight: 700;
+  color: #ffffff;
+  line-height: 1;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.02em;
+}
+
+.speedUnit {
+  font-size: 10px;
+  font-weight: 500;
+  color: rgba(255, 255, 255, 0.45);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+.vehicleRow {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.fuelContainer {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex: 1;
+}
+
+.fuelIcon {
+  font-size: 10px;
+  opacity: 0.6;
+}
+
+.fuelTrack {
+  flex: 1;
+  height: 4px;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 2px;
+  overflow: hidden;
+}
+
+.fuelFill {
+  height: 100%;
+  background: #4ade80;
+  border-radius: 2px;
+  transition: width 0.5s ease;
+}
+
+.fuelFill.fuelLow {
+  background: #ef4444;
+  animation: fuelPulse 1.5s ease-in-out infinite;
+}
+
+@keyframes fuelPulse {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.5;
+  }
+}
+
+.vehicleIndicators {
+  display: flex;
+  gap: 6px;
+}
+
+.indicator {
+  font-size: 12px;
+  opacity: 0.4;
+  transition: opacity 0.2s ease;
+}
+
+.indicatorActive {
+  opacity: 1;
+}
+
+.indicatorOff {
+  opacity: 0.25;
+}
+
+.indicatorWarning {
+  opacity: 1;
+  animation: indicatorBlink 1s ease-in-out infinite;
+}
+
+@keyframes indicatorBlink {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.3;
+  }
+}
+
+/* ---------------------------------------------------------------------------
+ * Light Theme Overrides
+ * --------------------------------------------------------------------------- */
+
+.themeLight .barTrack {
+  background: rgba(0, 0, 0, 0.12);
+}
+
+.themeLight .infoTag {
+  color: rgba(0, 0, 0, 0.6);
+  background: rgba(255, 255, 255, 0.7);
+}
+
+.themeLight .infoCash {
+  color: #16a34a;
+}
+
+.themeLight .infoBank {
+  color: #2563eb;
+}
+
+.themeLight .vehicleHud {
+  background: rgba(255, 255, 255, 0.65);
+  border: 1px solid rgba(0, 0, 0, 0.08);
+}
+
+.themeLight .speedValue {
+  color: #111827;
+}
+
+.themeLight .speedUnit {
+  color: rgba(0, 0, 0, 0.4);
+}

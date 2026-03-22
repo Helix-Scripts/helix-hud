@@ -1,4 +1,4 @@
-std = "lua54+fivem"
+std = "lua51+fivem"
 
 [lints]
 shadowing = "allow"
