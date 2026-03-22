@@ -1,12 +1,30 @@
 --- helix_hud server entry point
 --- Handles player data requests for money and job info.
 
---- Handle player data request from client
+-- ---------------------------------------------------------------------------
+-- Rate limiter — one request per player per COOLDOWN seconds
+-- ---------------------------------------------------------------------------
+
+---@type table<number, number>
+local lastRequest = {}
+local REQUEST_COOLDOWN = 5
+
+AddEventHandler('playerDropped', function()
+    lastRequest[source] = nil
+end)
+
+--- Handle player data request from client (rate-limited)
 RegisterNetEvent('helix_hud:requestPlayerData', function()
     local src = source
     if not src or src <= 0 then
         return
     end
+
+    local now = os.time()
+    if lastRequest[src] and (now - lastRequest[src]) < REQUEST_COOLDOWN then
+        return
+    end
+    lastRequest[src] = now
 
     local Bridge = exports['helix_lib']:bridge()
     if not Bridge then

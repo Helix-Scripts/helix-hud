@@ -1,2 +1,0 @@
--- This file intentionally left empty.
--- Config is loaded directly from config.lua in the resource root.

@@ -121,6 +121,25 @@ local function registerFrameworkEvents()
 end
 
 -- ---------------------------------------------------------------------------
+-- Exports — allow other resources to control HUD visibility
+-- ---------------------------------------------------------------------------
+
+exports('setVisible', setHudVisible)
+exports('isVisible', function()
+    return isHudVisible
+end)
+
+-- ---------------------------------------------------------------------------
+-- Chat Command: /hud — toggle visibility
+-- ---------------------------------------------------------------------------
+
+RegisterCommand('hud', function()
+    setHudVisible(not isHudVisible)
+end, false)
+
+TriggerEvent('chat:addSuggestion', '/hud', 'Toggle HUD visibility')
+
+-- ---------------------------------------------------------------------------
 -- NUI Callbacks
 -- ---------------------------------------------------------------------------
 

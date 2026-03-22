@@ -32,3 +32,8 @@ files({
     'html/index.html',
     'html/assets/**/*',
 })
+
+exports({
+    'setVisible',
+    'isVisible',
+})
