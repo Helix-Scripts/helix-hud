@@ -5,17 +5,20 @@ declare const styles: {
   readonly positionBottomLeft: string;
   readonly positionBottomCenter: string;
   readonly themeLight: string;
+  readonly statusContainer: string;
   readonly statusBars: string;
   readonly statusBar: string;
   readonly statusIcon: string;
   readonly barTrack: string;
   readonly barFill: string;
+  readonly barCritical: string;
   readonly playerInfo: string;
   readonly infoTag: string;
   readonly infoCash: string;
   readonly infoBank: string;
   readonly vehicleHud: string;
   readonly vehicleSlideIn: string;
+  readonly vehicleSlideOut: string;
   readonly vehicleSpeed: string;
   readonly speedValue: string;
   readonly speedUnit: string;
@@ -30,6 +33,7 @@ declare const styles: {
   readonly indicatorActive: string;
   readonly indicatorOff: string;
   readonly indicatorWarning: string;
+  readonly seatbeltActive: string;
 };
 
 export default styles;
