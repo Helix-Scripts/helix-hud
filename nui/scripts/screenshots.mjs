@@ -151,25 +151,33 @@ const BASE_CONFIG = {
 
 const SCENARIOS = [
   {
-    name: 'preview-dark-onfoot',
-    description: 'Dark theme — on foot, healthy',
+    name: 'full-hud',
+    description: 'All status bars visible, vehicle HUD active',
+    status: { health: 92, armor: 75, hunger: 80, thirst: 65, stamina: 88, stress: 0 },
+    vehicle: { active: true, speed: 82, fuel: 64, engine: true, seatbelt: true, speedUnit: 'mph' },
+    playerInfo: { cash: 24800, bank: 156000, job: 'CEO | Helix Corp', serverId: 1 },
+    config: { ...BASE_CONFIG, theme: 'dark' },
+  },
+  {
+    name: 'status-bars',
+    description: 'Just the status bars (no vehicle)',
     status: { health: 85, armor: 60, hunger: 70, thirst: 55, stamina: 82, stress: 0 },
     vehicle: { active: false, speed: 0, fuel: 0, engine: false, seatbelt: false, speedUnit: 'kmh' },
     playerInfo: { cash: 12450, bank: 84200, job: 'LSPD Officer', serverId: 42 },
     config: { ...BASE_CONFIG, theme: 'dark' },
   },
   {
-    name: 'preview-dark-vehicle',
-    description: 'Dark theme — in vehicle',
+    name: 'vehicle-hud',
+    description: 'Vehicle HUD panel',
     status: { health: 85, armor: 60, hunger: 70, thirst: 55, stamina: 78, stress: 0 },
     vehicle: { active: true, speed: 67, fuel: 72, engine: true, seatbelt: true, speedUnit: 'mph' },
     playerInfo: { cash: 12450, bank: 84200, job: 'LSPD Officer', serverId: 42 },
     config: { ...BASE_CONFIG, theme: 'dark' },
   },
   {
-    name: 'preview-dark-combat',
-    description: 'Dark theme — low health combat',
-    status: { health: 23, armor: 0, hunger: 45, thirst: 30, stress: 78, stamina: 35 },
+    name: 'critical-state',
+    description: 'Bars at ≤20% showing pulse animation',
+    status: { health: 12, armor: 0, hunger: 15, thirst: 8, stress: 85, stamina: 18 },
     vehicle: { active: false, speed: 0, fuel: 0, engine: false, seatbelt: false, speedUnit: 'kmh' },
     playerInfo: { cash: 2100, bank: 15800, job: 'Gang Member', serverId: 88 },
     config: {
@@ -179,28 +187,20 @@ const SCENARIOS = [
     },
   },
   {
-    name: 'preview-light-onfoot',
-    description: 'Light theme — on foot, healthy',
+    name: 'minimal-mode',
+    description: 'Bars hidden when full (all at 100%)',
+    status: { health: 100, armor: 0, hunger: 100, thirst: 100, stress: 0, stamina: 100 },
+    vehicle: { active: false, speed: 0, fuel: 0, engine: false, seatbelt: false, speedUnit: 'kmh' },
+    playerInfo: { cash: 12450, bank: 84200, job: 'LSPD Officer', serverId: 42 },
+    config: { ...BASE_CONFIG, theme: 'dark' },
+  },
+  {
+    name: 'light-theme',
+    description: 'Light theme variant',
     status: { health: 85, armor: 60, hunger: 70, thirst: 55, stamina: 82, stress: 0 },
     vehicle: { active: false, speed: 0, fuel: 0, engine: false, seatbelt: false, speedUnit: 'kmh' },
     playerInfo: { cash: 12450, bank: 84200, job: 'LSPD Officer', serverId: 42 },
     config: { ...BASE_CONFIG, theme: 'light' },
-  },
-  {
-    name: 'preview-dark-vehicle-lowfuel',
-    description: 'Dark theme — vehicle, low fuel warning',
-    status: { health: 75, armor: 40, hunger: 60, thirst: 50, stamina: 90, stress: 0 },
-    vehicle: { active: true, speed: 45, fuel: 8, engine: true, seatbelt: false, speedUnit: 'kmh' },
-    playerInfo: { cash: 5300, bank: 22100, job: 'Taxi Driver', serverId: 15 },
-    config: { ...BASE_CONFIG, theme: 'dark' },
-  },
-  {
-    name: 'preview-overview',
-    description: 'Marketing hero — full HUD with vehicle',
-    status: { health: 92, armor: 75, hunger: 80, thirst: 65, stamina: 88, stress: 0 },
-    vehicle: { active: true, speed: 82, fuel: 64, engine: true, seatbelt: true, speedUnit: 'mph' },
-    playerInfo: { cash: 24800, bank: 156000, job: 'CEO | Helix Corp', serverId: 1 },
-    config: { ...BASE_CONFIG, theme: 'dark' },
   },
 ];
 
@@ -346,7 +346,7 @@ async function main() {
   server.close();
 
   // Copy hero image to repo root
-  const heroSrc = path.join(OUTPUT_DIR, 'preview-overview.png');
+  const heroSrc = path.join(OUTPUT_DIR, 'full-hud.png');
   const heroDst = path.resolve(__dirname, '../../preview.png');
   if (fs.existsSync(heroSrc)) {
     fs.copyFileSync(heroSrc, heroDst);
@@ -355,7 +355,7 @@ async function main() {
 
   // Print file sizes
   console.log('\nFile sizes:');
-  const files = fs.readdirSync(OUTPUT_DIR).filter((f) => f.startsWith('preview-'));
+  const files = fs.readdirSync(OUTPUT_DIR).filter((f) => f.endsWith('.png') && !f.startsWith('bg-'));
   for (const file of files) {
     const stat = fs.statSync(path.join(OUTPUT_DIR, file));
     console.log(`  ${file}: ${(stat.size / 1024).toFixed(0)} KB`);
