@@ -37,7 +37,7 @@ globals:
     any: true
   # CFX runtime globals
   exports:
-    property: read-only
+    any: true
   Citizen:
     property: read-only
   json:
