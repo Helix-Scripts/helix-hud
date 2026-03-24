@@ -10,9 +10,11 @@ export interface StatusData {
 export interface VehicleData {
   active: boolean;
   speed: number;
+  rpm: number;
   fuel: number;
   engine: boolean;
   seatbelt: boolean;
+  lightsOn: boolean;
   speedUnit: 'kmh' | 'mph';
 }
 

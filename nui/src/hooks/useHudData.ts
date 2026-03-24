@@ -13,9 +13,11 @@ const defaultStatus: StatusData = {
 const defaultVehicle: VehicleData = {
   active: false,
   speed: 0,
+  rpm: 0,
   fuel: 0,
   engine: false,
   seatbelt: false,
+  lightsOn: false,
   speedUnit: 'kmh',
 };
 
