@@ -1,0 +1,524 @@
+/* ═══════════════════════════════════════════════════════════════════════
+   Helix HUD "Ghost" v3 — CSS Module
+   Single-file styles. No containers, no panels — pure floating elements.
+   ═══════════════════════════════════════════════════════════════════════ */
+
+/* ── Custom Properties ── */
+:root {
+  /* Brand */
+  --violet-primary:       #7c3aed;
+  --violet-bright:        #a78bfa;
+
+  /* Semantic Colors */
+  --hud-green:            #34d399;
+  --hud-green-glow:       rgba(52,211,153,0.30);
+  --hud-blue:             #60a5fa;
+  --hud-blue-glow:        rgba(96,165,250,0.30);
+  --hud-amber:            #fbbf24;
+  --hud-amber-glow:       rgba(251,191,36,0.30);
+  --hud-cyan:             #22d3ee;
+  --hud-cyan-glow:        rgba(34,211,238,0.30);
+  --hud-red:              #f87171;
+  --hud-red-glow:         rgba(248,113,113,0.30);
+  --hud-red-solid:        #ef4444;
+
+  /* Text Hierarchy */
+  --hud-text-hero:        rgba(255,255,255,0.90);
+  --hud-text-secondary:   rgba(255,255,255,0.75);
+  --hud-text-tertiary:    rgba(255,255,255,0.40);
+  --hud-text-label:       rgba(255,255,255,0.20);
+  --hud-text-ghost:       rgba(255,255,255,0.15);
+  --hud-text-value:       rgba(255,255,255,0.50);
+
+  /* Surfaces */
+  --hud-track:            rgba(255,255,255,0.04);
+  --hud-border-subtle:    rgba(255,255,255,0.15);
+
+  /* Icon opacity */
+  --hud-icon-active:      0.60;
+  --hud-icon-dim:         0.15;
+
+  /* Shadows */
+  --shadow-hero:          0 2px 12px rgba(0,0,0,0.80), 0 0 40px rgba(0,0,0,0.40);
+  --shadow-standard:      0 1px 8px rgba(0,0,0,0.60);
+  --shadow-light:         0 1px 4px rgba(0,0,0,0.50);
+
+  /* Typography */
+  --font-hud:             'Inter', -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
+
+  /* Scale (set via JS) */
+  --hud-scale:            1;
+}
+
+/* ── Light Theme Override ── */
+[data-theme="light"] {
+  --hud-text-hero:        rgba(0,0,0,0.85);
+  --hud-text-secondary:   rgba(0,0,0,0.70);
+  --hud-text-tertiary:    rgba(0,0,0,0.40);
+  --hud-text-label:       rgba(0,0,0,0.20);
+  --hud-text-ghost:       rgba(0,0,0,0.12);
+  --hud-text-value:       rgba(0,0,0,0.45);
+
+  --hud-track:            rgba(0,0,0,0.06);
+  --hud-border-subtle:    rgba(0,0,0,0.15);
+
+  --shadow-hero:          0 2px 12px rgba(255,255,255,0.20), 0 0 40px rgba(255,255,255,0.10);
+  --shadow-standard:      0 1px 8px rgba(255,255,255,0.15);
+  --shadow-light:         0 1px 4px rgba(255,255,255,0.10);
+}
+
+/* ── HUD Root ── */
+.hud {
+  position: absolute;
+  inset: 0;
+  z-index: 100;
+  pointer-events: none;
+  font-family: var(--font-hud);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  font-variant-numeric: tabular-nums;
+  font-feature-settings: 'tnum' 1;
+}
+
+.hudHidden {
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.3s ease;
+}
+
+/* ── Lucide Icon Base ── */
+.hudIcon {
+  width: 1em;
+  height: 1em;
+  stroke-width: 2;
+  stroke: currentColor;
+  fill: none;
+  display: inline-block;
+  vertical-align: middle;
+}
+
+.hudIconFilled {
+  fill: currentColor;
+  stroke: none;
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   Vehicle Cluster — bottom-right
+   ═══════════════════════════════════════════════════════════════ */
+
+.vehicleCluster {
+  position: absolute;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 0;
+  transition: opacity 0.4s ease, transform 0.4s ease;
+  transform: scale(var(--hud-scale));
+  transform-origin: bottom right;
+}
+
+.vehicleClusterHidden {
+  opacity: 0;
+  transform: scale(var(--hud-scale)) translateY(12px);
+  pointer-events: none;
+}
+
+/* Speed Readout */
+.speedRow {
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+}
+
+.speedValue {
+  font-size: 56px;
+  font-weight: 800;
+  letter-spacing: -0.05em;
+  color: var(--hud-text-hero);
+  line-height: 1;
+  text-shadow: var(--shadow-hero);
+}
+
+.speedFlash {
+  animation: speedFlash 0.4s ease-out;
+}
+
+.speedUnit {
+  font-size: 9px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.15em;
+  color: var(--hud-text-label);
+  text-shadow: var(--shadow-light);
+  margin-bottom: 6px;
+}
+
+/* Gear Indicator */
+.gear {
+  position: absolute;
+  width: 28px;
+  height: 28px;
+  border: 1.5px solid var(--hud-border-subtle);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transform: scale(var(--hud-scale));
+  transform-origin: center;
+  transition: opacity 0.4s ease;
+}
+
+.gearValue {
+  font-size: 20px;
+  font-weight: 700;
+  color: var(--hud-text-secondary);
+  text-shadow: var(--shadow-standard);
+  line-height: 1;
+}
+
+.gearNeutral {
+  color: var(--hud-text-label);
+}
+
+.gearHidden {
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.4s ease;
+}
+
+/* RPM Bar */
+.rpmBar {
+  margin-top: 8px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  width: 120px;
+}
+
+.rpmLabel {
+  font-size: 7px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--hud-text-label);
+  text-shadow: var(--shadow-light);
+  flex-shrink: 0;
+}
+
+.rpmTrack {
+  flex: 1;
+  height: 3px;
+  background: var(--hud-track);
+  border-radius: 1.5px;
+  position: relative;
+  overflow: hidden;
+}
+
+.rpmFill {
+  height: 3px;
+  border-radius: 1.5px;
+  position: absolute;
+  top: 0;
+  left: 0;
+  background: linear-gradient(90deg,
+    var(--hud-green) 0%,
+    var(--hud-green) 40%,
+    var(--hud-amber) 70%,
+    var(--hud-amber) 100%
+  );
+  box-shadow: 0 0 6px 1px var(--hud-green-glow),
+              0 0 12px 2px rgba(52,211,153,0.15);
+  transition: width 0.1s linear;
+}
+
+.rpmRedline {
+  background: linear-gradient(90deg,
+    var(--hud-green) 0%,
+    var(--hud-amber) 50%,
+    var(--hud-red) 85%,
+    var(--hud-red) 100%
+  );
+  box-shadow: 0 0 8px 2px var(--hud-red-glow),
+              0 0 16px 3px rgba(248,113,113,0.20);
+}
+
+/* Fuel Bar */
+.fuelBar {
+  margin-top: 8px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  width: 120px;
+}
+
+.fuelIcon {
+  font-size: 9px;
+  line-height: 1;
+  color: var(--hud-text-label);
+  filter: drop-shadow(var(--shadow-light));
+  flex-shrink: 0;
+}
+
+.fuelTrack {
+  flex: 1;
+  height: 3px;
+  background: var(--hud-track);
+  border-radius: 1.5px;
+  position: relative;
+}
+
+.fuelFill {
+  height: 3px;
+  border-radius: 1.5px;
+  position: absolute;
+  top: 0;
+  left: 0;
+  background: var(--hud-green);
+  box-shadow: 0 0 8px var(--hud-green-glow);
+  transition: width 0.3s ease, background-color 0.4s ease, box-shadow 0.4s ease;
+}
+
+.fuelLow {
+  background: var(--hud-red);
+  box-shadow: 0 0 8px var(--hud-red-glow);
+}
+
+.fuelValue {
+  font-size: 9px;
+  font-weight: 600;
+  color: var(--hud-text-tertiary);
+  text-shadow: var(--shadow-light);
+  flex-shrink: 0;
+  min-width: 18px;
+  text-align: right;
+}
+
+.fuelValueLow {
+  color: var(--hud-red);
+}
+
+/* Status Indicators (ENG / BELT / LIGHT) */
+.indicators {
+  margin-top: 10px;
+  display: flex;
+  gap: 10px;
+  justify-content: flex-end;
+}
+
+.indicator {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 3px;
+}
+
+.indicatorIcon {
+  width: 14px;
+  height: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 10px;
+  line-height: 1;
+  text-shadow: var(--shadow-standard);
+}
+
+.indicatorActive {
+  color: var(--hud-green);
+  filter: drop-shadow(0 0 4px var(--hud-green-glow));
+}
+
+.indicatorWarning {
+  color: var(--hud-red-solid);
+  filter: drop-shadow(0 0 4px var(--hud-red-glow));
+  opacity: 0.7;
+}
+
+.indicatorOff {
+  color: var(--hud-text-ghost);
+  filter: none;
+}
+
+.indicatorLabel {
+  font-size: 6px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--hud-text-ghost);
+  text-shadow: var(--shadow-light);
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   Character Stat Bars — bottom-left
+   ═══════════════════════════════════════════════════════════════ */
+
+.statBars {
+  position: absolute;
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  transform: scale(var(--hud-scale));
+  transform-origin: bottom left;
+}
+
+.statBarsAutoHide {
+  opacity: 0.15;
+  transition: opacity 0.6s ease;
+}
+
+.statBarsAutoHide:hover,
+.statBarsAlert {
+  opacity: 1;
+}
+
+.statBarsShowValues .statValue {
+  opacity: 1 !important;
+}
+
+/* Individual Stat */
+.stat {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  position: relative;
+}
+
+.statIcon {
+  font-size: 12px;
+  line-height: 1;
+  filter: drop-shadow(var(--shadow-light));
+  opacity: var(--hud-icon-active);
+  transition: opacity 0.3s ease, color 0.4s ease;
+}
+
+.statBarTrack {
+  width: 100px;
+  height: 3px;
+  background: var(--hud-track);
+  border-radius: 1.5px;
+  position: relative;
+  transition: border 0.4s ease;
+}
+
+.statBarFill {
+  height: 3px;
+  border-radius: 1.5px;
+  position: absolute;
+  top: 0;
+  left: 0;
+  transition: width 0.4s ease, background-color 0.4s ease, box-shadow 0.4s ease;
+}
+
+/* Color variants */
+.fillHealth {
+  background: var(--hud-green);
+  box-shadow: 0 0 8px var(--hud-green-glow);
+}
+.iconHealth { color: var(--hud-green); }
+
+.fillArmor {
+  background: var(--hud-blue);
+  box-shadow: 0 0 8px var(--hud-blue-glow);
+}
+.iconArmor { color: var(--hud-blue); }
+
+.fillHunger {
+  background: var(--hud-amber);
+  box-shadow: 0 0 8px var(--hud-amber-glow);
+}
+.iconHunger { color: var(--hud-amber); }
+
+.fillThirst {
+  background: var(--hud-cyan);
+  box-shadow: 0 0 8px var(--hud-cyan-glow);
+}
+.iconThirst { color: var(--hud-cyan); }
+
+.fillStress {
+  background: var(--hud-red);
+  box-shadow: 0 0 8px var(--hud-red-glow);
+}
+.iconStress { color: var(--hud-red); }
+
+/* Critical state */
+.fillCritical {
+  background: var(--hud-red) !important;
+  box-shadow: 0 0 12px rgba(248,113,113,0.50) !important;
+}
+
+.iconCritical {
+  color: var(--hud-red) !important;
+  opacity: 0.90 !important;
+  animation: iconShake 0.5s ease-in-out infinite;
+}
+
+.trackCritical {
+  border: 1px dashed rgba(255,255,255,0.20);
+}
+
+/* High stress pulse */
+.fillStressHigh {
+  animation: stressPulse 2s ease-in-out infinite;
+}
+
+/* Stat hover value */
+.statValue {
+  position: absolute;
+  top: -16px;
+  left: 17px;
+  font-size: 8px;
+  font-weight: 600;
+  color: var(--hud-text-value);
+  text-shadow: var(--shadow-standard);
+  opacity: 0;
+  transition: opacity 0.2s ease;
+  pointer-events: none;
+}
+
+.stat:hover .statValue {
+  opacity: 1;
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   ID / Job — top-right
+   ═══════════════════════════════════════════════════════════════ */
+
+.idJob {
+  position: absolute;
+  font-size: 10px;
+  font-weight: 500;
+  color: var(--hud-text-tertiary);
+  text-shadow: var(--shadow-standard);
+  transition: opacity 0.3s ease;
+  transform: scale(var(--hud-scale));
+  transform-origin: top right;
+}
+
+.idJobHidden {
+  opacity: 0;
+  pointer-events: none;
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   Animations
+   ═══════════════════════════════════════════════════════════════ */
+
+@keyframes stressPulse {
+  0%, 100% {
+    box-shadow: 0 0 8px var(--hud-red-glow);
+  }
+  50% {
+    box-shadow: 0 0 16px rgba(248,113,113,0.55);
+  }
+}
+
+@keyframes speedFlash {
+  0%   { color: rgba(255,255,255,1.0); }
+  100% { color: var(--hud-text-hero); }
+}
+
+@keyframes iconShake {
+  0%, 100% { transform: translateX(0); }
+  25%      { transform: translateX(-1px); }
+  75%      { transform: translateX(1px); }
+}

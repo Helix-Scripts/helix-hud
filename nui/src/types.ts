@@ -1,69 +1,69 @@
-export interface StatusData {
-  health: number;
-  armor: number;
-  hunger: number;
-  thirst: number;
-  stress: number;
-  stamina: number;
-}
+/** Ghost HUD v3 — Type Definitions */
 
-export interface VehicleData {
-  active: boolean;
-  speed: number;
-  rpm: number;
-  fuel: number;
-  engine: boolean;
-  seatbelt: boolean;
-  lightsOn: boolean;
-  speedUnit: 'kmh' | 'mph';
-}
+export interface HudState {
+  // Character stats (always visible)
+  health: number;   // 0–100
+  armor: number;    // 0–100
+  hunger: number;   // 0–100
+  thirst: number;   // 0–100
+  stress: number;   // 0–100
 
-export interface PlayerInfo {
-  cash: number;
-  bank: number;
-  job: string;
-  serverId: number;
-}
+  // Identity (toggleable)
+  playerId: number;
+  jobLabel: string;
+  showIdJob: boolean;
 
-export interface HudElements {
-  health: boolean;
-  armor: boolean;
-  hunger: boolean;
-  thirst: boolean;
-  stress: boolean;
-  stamina: boolean;
-  cash: boolean;
-  bank: boolean;
-  job: boolean;
-  serverId: boolean;
-}
+  // Vehicle (visible only when in vehicle)
+  inVehicle: boolean;
+  speed: number;     // km/h or mph integer
+  rpm: number;       // 0.0–1.0 normalized
+  gear: number;      // -1=R, 0=N, 1–6=forward
+  fuel: number;      // 0–100
 
-export interface VehicleConfig {
-  enabled: boolean;
-  speedUnit: 'kmh' | 'mph';
-  fuelScript: string;
-  seatbelt: boolean;
+  // Vehicle indicators
+  engineOn: boolean;
+  seatbeltOn: boolean;
+  headlightsOn: boolean;
+  engineHealth: number;  // 0–1000 (GTA native)
 }
 
 export interface HudConfig {
-  elements: HudElements;
-  vehicle: VehicleConfig;
-  theme: 'dark' | 'light';
-  position: 'bottom-right' | 'bottom-left' | 'bottom-center';
-  scale: number;
+  theme: 'dark' | 'light' | 'auto';
+  speedUnit: 'kmh' | 'mph';
+  autoHide: boolean;
+  showValuesAlways: boolean;
+  positions: HudPositions;
+}
+
+export interface HudPositions {
+  vehicleCluster: { bottom: number; right: number };
+  statBars: { bottom: number; left: number };
+  idJob: { top: number; right: number };
+  gear: { bottom: number; right: number };
 }
 
 export interface HudUpdateMessage {
-  action: 'updateHud';
-  status: StatusData;
-  vehicle: VehicleData;
-  playerInfo: PlayerInfo;
-  config: HudConfig;
+  type: 'hud:update';
+  data: Partial<HudState>;
 }
 
-export interface VisibilityMessage {
-  action: 'setVisible';
+export interface HudVisibilityMessage {
+  type: 'hud:visibility';
   visible: boolean;
 }
 
-export type NuiMessage = HudUpdateMessage | VisibilityMessage;
+export interface HudConfigMessage {
+  type: 'hud:config';
+  config: Partial<HudConfig>;
+}
+
+export interface HudShowValuesMessage {
+  type: 'hud:showValues';
+  show: boolean;
+}
+
+export type NuiMessage =
+  | HudUpdateMessage
+  | HudVisibilityMessage
+  | HudConfigMessage
+  | HudShowValuesMessage;

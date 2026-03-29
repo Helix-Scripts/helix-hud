@@ -1,77 +1,69 @@
-import { useState, useEffect, useCallback } from 'react';
-import type { StatusData, VehicleData, PlayerInfo, HudConfig, NuiMessage } from '../types';
+import { useState, useEffect, useCallback, useRef } from 'react';
+import type { HudState, HudConfig, NuiMessage, HudPositions } from '../types';
 
-const defaultStatus: StatusData = {
+const DEFAULT_POSITIONS: HudPositions = {
+  vehicleCluster: { bottom: 40, right: 60 },
+  statBars: { bottom: 14, left: 40 },
+  idJob: { top: 28, right: 40 },
+  gear: { bottom: 136, right: 148 },
+};
+
+const DEFAULT_STATE: HudState = {
   health: 100,
   armor: 0,
   hunger: 100,
   thirst: 100,
   stress: 0,
-  stamina: 100,
-};
-
-const defaultVehicle: VehicleData = {
-  active: false,
+  playerId: 0,
+  jobLabel: '',
+  showIdJob: true,
+  inVehicle: false,
   speed: 0,
   rpm: 0,
+  gear: 0,
   fuel: 0,
-  engine: false,
-  seatbelt: false,
-  lightsOn: false,
-  speedUnit: 'kmh',
+  engineOn: false,
+  seatbeltOn: false,
+  headlightsOn: false,
+  engineHealth: 1000,
 };
 
-const defaultPlayerInfo: PlayerInfo = {
-  cash: 0,
-  bank: 0,
-  job: '',
-  serverId: 0,
-};
-
-const defaultConfig: HudConfig = {
-  elements: {
-    health: true,
-    armor: true,
-    hunger: true,
-    thirst: true,
-    stress: false,
-    stamina: true,
-    cash: true,
-    bank: false,
-    job: true,
-    serverId: true,
-  },
-  vehicle: {
-    enabled: true,
-    speedUnit: 'kmh',
-    fuelScript: 'auto',
-    seatbelt: true,
-  },
+const DEFAULT_CONFIG: HudConfig = {
   theme: 'dark',
-  position: 'bottom-right',
-  scale: 1.0,
+  speedUnit: 'kmh',
+  autoHide: false,
+  showValuesAlways: false,
+  positions: DEFAULT_POSITIONS,
 };
 
 export function useHudData() {
   const [visible, setVisible] = useState(false);
-  const [status, setStatus] = useState<StatusData>(defaultStatus);
-  const [vehicle, setVehicle] = useState<VehicleData>(defaultVehicle);
-  const [playerInfo, setPlayerInfo] = useState<PlayerInfo>(defaultPlayerInfo);
-  const [config, setConfig] = useState<HudConfig>(defaultConfig);
+  const [state, setState] = useState<HudState>(DEFAULT_STATE);
+  const [config, setConfig] = useState<HudConfig>(DEFAULT_CONFIG);
+  const [showValues, setShowValues] = useState(false);
+  const stateRef = useRef(state);
+
+  // Keep ref in sync for partial merges
+  useEffect(() => {
+    stateRef.current = state;
+  }, [state]);
 
   const handleMessage = useCallback((event: MessageEvent<NuiMessage>) => {
     const msg = event.data;
-    if (!msg || !msg.action) return;
+    if (!msg || !msg.type) return;
 
-    switch (msg.action) {
-      case 'setVisible':
+    switch (msg.type) {
+      case 'hud:update':
+        setState(prev => ({ ...prev, ...msg.data }));
+        break;
+      case 'hud:visibility':
         setVisible(msg.visible);
         break;
-      case 'updateHud':
-        setStatus(msg.status);
-        setVehicle(msg.vehicle);
-        setPlayerInfo(msg.playerInfo);
-        if (msg.config) setConfig(msg.config);
+      case 'hud:config':
+        setConfig(prev => ({ ...prev, ...msg.config }));
+        break;
+      case 'hud:showValues':
+        setShowValues(msg.show);
         break;
     }
   }, []);
@@ -81,5 +73,5 @@ export function useHudData() {
     return () => window.removeEventListener('message', handleMessage);
   }, [handleMessage]);
 
-  return { visible, status, vehicle, playerInfo, config };
+  return { visible, state, config, showValues };
 }
