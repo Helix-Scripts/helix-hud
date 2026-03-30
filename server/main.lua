@@ -26,12 +26,7 @@ RegisterNetEvent('helix_hud:requestPlayerData', function()
     end
     lastRequest[src] = now
 
-    local Bridge = exports['helix_lib']:bridge()
-    if not Bridge then
-        return
-    end
-
-    local player = Bridge.GetPlayer(src)
+    local player = exports['helix_lib']:bridge_GetPlayer(src)
     if not player then
         return
     end
