@@ -265,6 +265,7 @@
   background: var(--hud-track);
   border-radius: 1.5px;
   position: relative;
+  overflow: hidden;
 }
 
 .fuelFill {
@@ -397,6 +398,7 @@
   background: var(--hud-track);
   border-radius: 1.5px;
   position: relative;
+  overflow: hidden;
   transition: border 0.4s ease;
 }
 
