@@ -44,12 +44,10 @@ end
 --- Poll framework-dependent stats (hunger, thirst, stress)
 --- Uses QBCore/Qbox PlayerData metadata or ESX status
 function StatusModule.pollFramework()
-    local Bridge = exports['helix_lib']:bridge()
-    if not Bridge then
+    local fw = exports['helix_lib']:bridge_framework()
+    if not fw then
         return
     end
-
-    local fw = Bridge.getFramework()
 
     if fw == 'qbox' or fw == 'qbcore' then
         StatusModule._pollQB()
