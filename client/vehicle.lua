@@ -1,11 +1,13 @@
 ---@class VehicleData
 ---@field active boolean Whether the player is in a vehicle
 ---@field speed number Current speed in configured unit
----@field rpm number 0-100 normalized RPM percentage
+---@field rpm number 0.0-1.0 normalized RPM
+---@field gear number Current gear (-1=R, 0=N, 1-6=forward)
 ---@field fuel number 0-100 fuel level
 ---@field engine boolean Engine running
 ---@field seatbelt boolean Seatbelt fastened
 ---@field lightsOn boolean Vehicle lights on
+---@field engineHealth number 0-1000 engine health (GTA native)
 ---@field speedUnit string 'kmh' or 'mph'
 
 ---@class VehicleModule
@@ -15,10 +17,12 @@ local cachedVehicle = {
     active = false,
     speed = 0,
     rpm = 0,
+    gear = 0,
     fuel = 0,
     engine = false,
     seatbelt = false,
     lightsOn = false,
+    engineHealth = 1000,
     speedUnit = 'kmh',
 }
 
@@ -33,10 +37,12 @@ end
 function VehicleModule.poll(vehicle)
     cachedVehicle.active = true
     cachedVehicle.speed = HudUtils.getVehicleSpeed(vehicle)
-    cachedVehicle.rpm = math.floor(GetVehicleCurrentRpm(vehicle) * 100 + 0.5)
+    cachedVehicle.rpm = GetVehicleCurrentRpm(vehicle) -- 0.0–1.0 normalized
+    cachedVehicle.gear = GetVehicleCurrentGear(vehicle) -- 0=N, 1-6=forward gears
     cachedVehicle.fuel = HudUtils.getVehicleFuel(vehicle)
     cachedVehicle.engine = GetIsVehicleEngineRunning(vehicle)
     cachedVehicle.seatbelt = HudUtils.isSeatbeltOn()
+    cachedVehicle.engineHealth = GetVehicleEngineHealth(vehicle) -- 0–1000
     cachedVehicle.speedUnit = Config.vehicle.speedUnit
 
     -- Check lights state (returns multiple values: retval, lightsOn, highbeamsOn)
@@ -49,8 +55,10 @@ function VehicleModule.reset()
     cachedVehicle.active = false
     cachedVehicle.speed = 0
     cachedVehicle.rpm = 0
+    cachedVehicle.gear = 0
     cachedVehicle.fuel = 0
     cachedVehicle.engine = false
     cachedVehicle.seatbelt = false
     cachedVehicle.lightsOn = false
+    cachedVehicle.engineHealth = 1000
 end

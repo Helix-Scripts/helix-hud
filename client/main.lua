@@ -19,22 +19,59 @@ local playerInfo = {
 -- ---------------------------------------------------------------------------
 
 --- Send a batched HUD update to NUI
+--- Flattens status, vehicle, and playerInfo into a single data table
+--- matching the React HudState interface
 local function sendHudUpdate()
     if not isNuiReady or not isHudVisible then
         return
     end
 
+    local status = StatusModule.get()
+    local vehicle = VehicleModule.get()
+
     SendNUIMessage({
-        action = 'updateHud',
-        status = StatusModule.get(),
-        vehicle = VehicleModule.get(),
-        playerInfo = playerInfo,
+        type = 'hud:update',
+        data = {
+            -- Character stats
+            health = status.health,
+            armor = status.armor,
+            hunger = status.hunger,
+            thirst = status.thirst,
+            stress = status.stress,
+
+            -- Identity
+            playerId = playerInfo.serverId,
+            jobLabel = playerInfo.job,
+            showIdJob = Config.elements.serverId or Config.elements.job,
+
+            -- Vehicle
+            inVehicle = vehicle.active,
+            speed = vehicle.speed,
+            rpm = vehicle.rpm,
+            gear = vehicle.gear,
+            fuel = vehicle.fuel,
+            engineOn = vehicle.engine,
+            seatbeltOn = vehicle.seatbelt,
+            headlightsOn = vehicle.lightsOn,
+            engineHealth = vehicle.engineHealth,
+        },
+    })
+end
+
+--- Send config to NUI as a separate hud:config message
+local function sendHudConfig()
+    if not isNuiReady then
+        return
+    end
+
+    SendNUIMessage({
+        type = 'hud:config',
         config = {
-            elements = Config.elements,
-            vehicle = Config.vehicle,
             theme = Config.theme,
-            position = Config.position,
-            scale = Config.scale,
+            speedUnit = Config.vehicle.speedUnit or 'kmh',
+            autoHide = false,
+            showValuesAlways = false,
+            positions = Config.positions or nil,
         },
     })
 end
@@ -45,7 +82,7 @@ local function setHudVisible(visible)
     isHudVisible = visible
     if isNuiReady then
         SendNUIMessage({
-            action = 'setVisible',
+            type = 'hud:visibility',
             visible = visible,
         })
     end
@@ -145,7 +182,8 @@ RegisterNUICallback('hudReady', function(_, cb)
     isNuiReady = true
     cb('ok')
 
-    -- Send initial state
+    -- Send initial config and state
+    sendHudConfig()
     setHudVisible(true)
     sendHudUpdate()
 end)
