@@ -79,12 +79,10 @@ end)
 -- ---------------------------------------------------------------------------
 
 local function registerFrameworkEvents()
-    local Bridge = exports['helix_lib']:bridge()
-    if not Bridge then
+    local fw = exports['helix_lib']:bridge_framework()
+    if not fw then
         return
     end
-
-    local fw = Bridge.getFramework()
 
     if fw == 'qbox' or fw == 'qbcore' then
         -- QBCore/Qbox: listen for PlayerData updates
