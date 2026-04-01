@@ -1,8 +1,8 @@
 # Dependencies
 node_modules/
 
-# Build output
-html/
+# Build output (committed for drag-and-drop install)
+# html/
 
 # OS files
 .DS_Store

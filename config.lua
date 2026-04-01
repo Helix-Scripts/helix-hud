@@ -25,10 +25,16 @@ Config = {
     },
 
     -- Visual
-    theme = 'dark', -- 'dark' or 'light'
-    position = 'bottom-right', -- 'bottom-right', 'bottom-left', 'bottom-center'
-    scale = 1.0,
+    theme = 'dark', -- 'dark', 'light', or 'auto'
     hideInPauseMenu = true,
+
+    -- Element positions (px from screen edge). Omit to use defaults.
+    -- positions = {
+    --     vehicleCluster = { bottom = 40, right = 60 },
+    --     statBars = { bottom = 14, left = 40 },
+    --     idJob = { top = 28, right = 40 },
+    --     gear = { bottom = 136, right = 148 },
+    -- },
 
     -- Performance tuning
     updateIntervals = {
