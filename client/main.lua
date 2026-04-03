@@ -281,10 +281,20 @@ local function startVehicleThread()
 
                 if vehicle ~= 0 then
                     VehicleModule.poll(vehicle)
+                    -- Show radar when in vehicle (minimap is useful for driving)
+                    if not isRadarVisible then
+                        DisplayRadar(true)
+                        isRadarVisible = true
+                    end
                 else
                     if VehicleModule.get().active then
                         VehicleModule.reset()
                         sendHudUpdate()
+                    end
+                    -- Hide radar on foot (also hides native health/armor arcs)
+                    if isRadarVisible then
+                        DisplayRadar(false)
+                        isRadarVisible = false
                     end
                 end
             end
@@ -336,33 +346,25 @@ local function startNativeHudThread()
 end
 
 -- ---------------------------------------------------------------------------
--- Hide native health/armor bars (arcs around minimap)
--- These are NOT standard HUD components — they're rendered as part of
--- the minimap scaleform. ReplaceHudColourWithRgba makes them transparent.
--- Called once at init (not per-frame).
+-- Minimap / radar management
+-- The native health/armor bars are arcs rendered as part of the minimap
+-- scaleform — they can't be hidden with HideHudComponentThisFrame or
+-- ReplaceHudColourWithRgba reliably. The proven approach (used by qbx_hud)
+-- is to hide the radar on foot and only show it in vehicles.
+-- helix_hud's NUI replaces all info the minimap bars provided.
 -- ---------------------------------------------------------------------------
 
-local function hideNativeHealthArmor()
-    -- Health bar: green/red arc around minimap
-    ReplaceHudColourWithRgba(116, 0, 0, 0, 0)  -- Health bar fill
-    ReplaceHudColourWithRgba(117, 0, 0, 0, 0)  -- Health bar damage flash
-    -- Armor bar: blue arc around minimap
-    ReplaceHudColourWithRgba(118, 0, 0, 0, 0)  -- Armor bar fill
-    ReplaceHudColourWithRgba(119, 0, 0, 0, 0)  -- Armor bar background
-    -- Stamina/special ability bar
-    ReplaceHudColourWithRgba(152, 0, 0, 0, 0)  -- Stamina bar (yellow)
-end
-
--- ---------------------------------------------------------------------------
--- Minimap management — reposition to avoid overlap with HUD
--- ---------------------------------------------------------------------------
+local isRadarVisible = false
 
 local function setupMinimap()
-    hideNativeHealthArmor()
+    -- Start with radar hidden (hides health/armor arcs too)
+    DisplayRadar(false)
+    isRadarVisible = false
+
+    -- Position for when it does show (in vehicle)
     SetMinimapComponentPosition('minimap', 'L', 'B', 0.0, -0.03, 0.15, 0.20)
     SetMinimapComponentPosition('minimap_mask', 'L', 'B', 0.0, 0.0, 0.128, 0.20)
     SetMinimapComponentPosition('minimap_blur', 'L', 'B', -0.01, -0.03, 0.17, 0.22)
-    DisplayRadar(true)
 end
 
 -- ---------------------------------------------------------------------------
@@ -388,7 +390,9 @@ CreateThread(function()
     setupMinimap()
 
     -- Detect if player is already logged in (resource restart / late start)
-    -- This handles the case where helix_hud is restarted after player login
+    -- This handles the case where helix_hud is restarted after player login.
+    -- The hudReady callback fires BEFORE this init thread completes (due to
+    -- Wait(1000) above), so we must also trigger visibility here.
     if not isPlayerLoaded then
         -- Qbox: state bag is the most reliable indicator
         if LocalPlayer.state.isLoggedIn then
@@ -401,6 +405,12 @@ CreateThread(function()
                 isPlayerLoaded = true
             end
         end
+    end
+
+    -- If player was already loaded (resource restart), show HUD now
+    if isPlayerLoaded and isNuiReady then
+        setHudVisible(true)
+        sendHudUpdateForced()
     end
 
     startStatusThread()
