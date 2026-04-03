@@ -267,6 +267,17 @@ local function startStatusThread()
     end)
 end
 
+--- Make native health/armor/stamina arc colours fully transparent.
+--- Must be re-applied after every DisplayRadar(true) — the game
+--- resets HUD colours when radar visibility changes.
+local function applyTransparentArcs()
+    ReplaceHudColourWithRgba(116, 0, 0, 0, 0)  -- Health bar fill
+    ReplaceHudColourWithRgba(117, 0, 0, 0, 0)  -- Health damage flash
+    ReplaceHudColourWithRgba(118, 0, 0, 0, 0)  -- Armor bar fill
+    ReplaceHudColourWithRgba(119, 0, 0, 0, 0)  -- Armor bar background
+    ReplaceHudColourWithRgba(152, 0, 0, 0, 0)  -- Stamina bar
+end
+
 --- Vehicle polling thread (speed, fuel, seatbelt, engine)
 local function startVehicleThread()
     if not Config.vehicle.enabled then
@@ -357,17 +368,6 @@ end
 -- ---------------------------------------------------------------------------
 
 local isRadarVisible = false
-
---- Make native health/armor/stamina arc colours fully transparent.
---- Must be re-applied after every DisplayRadar(true) — the game
---- resets HUD colours when radar visibility changes.
-local function applyTransparentArcs()
-    ReplaceHudColourWithRgba(116, 0, 0, 0, 0)  -- Health bar fill
-    ReplaceHudColourWithRgba(117, 0, 0, 0, 0)  -- Health damage flash
-    ReplaceHudColourWithRgba(118, 0, 0, 0, 0)  -- Armor bar fill
-    ReplaceHudColourWithRgba(119, 0, 0, 0, 0)  -- Armor bar background
-    ReplaceHudColourWithRgba(152, 0, 0, 0, 0)  -- Stamina bar
-end
 
 local function setupMinimap()
     -- Start with radar hidden on foot
