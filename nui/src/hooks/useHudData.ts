@@ -5,7 +5,7 @@ const DEFAULT_POSITIONS: HudPositions = {
   vehicleCluster: { bottom: 40, right: 60 },
   statBars: { bottom: 14, left: 40 },
   idJob: { top: 28, right: 40 },
-  gear: { bottom: 136, right: 148 },
+  gear: { bottom: 180, right: 148 },
 };
 
 const DEFAULT_STATE: HudState = {
