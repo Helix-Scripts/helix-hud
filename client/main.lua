@@ -170,14 +170,9 @@ local function registerFrameworkEvents()
             end
         end)
 
-        -- Check if already loaded (reconnect / late start)
-        pcall(function()
-            local QBCore = exports['qbx_core']:GetCoreObject() or exports['qb-core']:GetCoreObject()
-            local PlayerData = QBCore.Functions.GetPlayerData()
-            if PlayerData and PlayerData.citizenid and PlayerData.citizenid ~= '' then
-                isPlayerLoaded = true
-            end
-        end)
+        -- Note: no pcall GetPlayerData check here — PlayerData.citizenid
+        -- can be non-empty during character selection, causing false positives.
+        -- Only LocalPlayer.state.isLoggedIn (checked in init) is reliable.
     elseif fw == 'esx' then
         RegisterNetEvent('esx:setAccountMoney', function(account)
             if account.name == 'money' or account.name == 'cash' then
@@ -331,20 +326,33 @@ end
 -- Hide native GTA HUD elements that overlap with helix_hud
 -- ---------------------------------------------------------------------------
 
+--- Minimap scaleform handle (initialized in setupMinimap)
+local minimapScaleform = 0
+
 local function startNativeHudThread()
     CreateThread(function()
         while true do
             if isHudVisible then
-                -- Hide native HUD text overlays that helix_hud replaces.
-                -- Note: native health/armor bars below minimap are part of
-                -- the minimap scaleform and CANNOT be hidden with this native.
-                -- Those are masked by helix_hud's NUI rendering on top.
+                -- Hide native HUD text overlays
                 HideHudComponentThisFrame(3)   -- CASH
                 HideHudComponentThisFrame(4)   -- MP_CASH
                 HideHudComponentThisFrame(6)   -- VEHICLE_NAME
                 HideHudComponentThisFrame(7)   -- AREA_NAME
                 HideHudComponentThisFrame(8)   -- VEHICLE_CLASS
                 HideHudComponentThisFrame(9)   -- STREET_NAME
+
+                -- Suppress native health/armor bars below minimap.
+                -- These bars are rendered inside the minimap scaleform (minimap.gfx).
+                -- SETUP_HEALTH_ARMOUR(3) switches the scaleform to "golf mode"
+                -- which attaches an empty placeholder instead of health/armor bars.
+                -- Must be called every frame to prevent the game from resetting it.
+                -- Source: SimpleMinimap, joemap, cfx.re community — proven approach.
+                if minimapScaleform ~= 0 then
+                    BeginScaleformMovieMethod(minimapScaleform, 'SETUP_HEALTH_ARMOUR')
+                    ScaleformMovieMethodAddParamInt(3)
+                    EndScaleformMovieMethod()
+                end
+
                 Wait(0)
             else
                 Wait(500)
@@ -361,12 +369,19 @@ end
 local isRadarVisible = false
 
 local function setupMinimap()
+    -- Request the minimap scaleform handle and force-initialize it.
+    -- The bigmap toggle is required to fully load the scaleform —
+    -- without it, BeginScaleformMovieMethod calls silently fail.
+    minimapScaleform = RequestScaleformMovie('minimap')
+    SetRadarBigmapEnabled(true, false)
+    Wait(0)
+    SetRadarBigmapEnabled(false, false)
+
     -- Start with radar hidden on foot
     DisplayRadar(false)
     isRadarVisible = false
 
     -- Explicitly restore GTA default minimap positioning
-    -- (previous deploys set custom values that may be cached client-side)
     SetMinimapComponentPosition('minimap', 'L', 'B', -0.0045, -0.002, 0.150, 0.188)
     SetMinimapComponentPosition('minimap_mask', 'L', 'B', 0.0, 0.0, 0.128, 0.20)
     SetMinimapComponentPosition('minimap_blur', 'L', 'B', -0.01, -0.015, 0.262, 0.300)
