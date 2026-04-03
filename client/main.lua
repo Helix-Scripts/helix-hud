@@ -285,6 +285,7 @@ local function startVehicleThread()
                     -- Show radar when in vehicle (minimap is useful for driving)
                     if not isRadarVisible then
                         DisplayRadar(true)
+                        UnlockMinimapAngle()
                         isRadarVisible = true
                     end
                 else
@@ -381,10 +382,10 @@ local function setupMinimap()
     DisplayRadar(false)
     isRadarVisible = false
 
-    -- Minimap sizing — compact, roughly half of qbx_hud square map
-    SetMinimapComponentPosition('minimap', 'L', 'B', 0.0, -0.025, 0.08, 0.09)
-    SetMinimapComponentPosition('minimap_mask', 'L', 'B', 0.0, 0.0, 0.065, 0.10)
-    SetMinimapComponentPosition('minimap_blur', 'L', 'B', -0.005, 0.01, 0.13, 0.15)
+    -- Minimap sizing — tuned with Robin
+    SetMinimapComponentPosition('minimap', 'L', 'B', -0.02, -0.025, 0.20, 0.18)
+    SetMinimapComponentPosition('minimap_mask', 'L', 'B', -0.02, 0.0, 0.16, 0.20)
+    SetMinimapComponentPosition('minimap_blur', 'L', 'B', -0.025, 0.01, 0.32, 0.30)
 end
 
 -- ---------------------------------------------------------------------------
