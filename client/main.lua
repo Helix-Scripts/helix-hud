@@ -336,10 +336,29 @@ local function startNativeHudThread()
 end
 
 -- ---------------------------------------------------------------------------
+-- Hide native health/armor bars (arcs around minimap)
+-- These are NOT standard HUD components — they're rendered as part of
+-- the minimap scaleform. ReplaceHudColourWithRgba makes them transparent.
+-- Called once at init (not per-frame).
+-- ---------------------------------------------------------------------------
+
+local function hideNativeHealthArmor()
+    -- Health bar: green/red arc around minimap
+    ReplaceHudColourWithRgba(116, 0, 0, 0, 0)  -- Health bar fill
+    ReplaceHudColourWithRgba(117, 0, 0, 0, 0)  -- Health bar damage flash
+    -- Armor bar: blue arc around minimap
+    ReplaceHudColourWithRgba(118, 0, 0, 0, 0)  -- Armor bar fill
+    ReplaceHudColourWithRgba(119, 0, 0, 0, 0)  -- Armor bar background
+    -- Stamina/special ability bar
+    ReplaceHudColourWithRgba(152, 0, 0, 0, 0)  -- Stamina bar (yellow)
+end
+
+-- ---------------------------------------------------------------------------
 -- Minimap management — reposition to avoid overlap with HUD
 -- ---------------------------------------------------------------------------
 
 local function setupMinimap()
+    hideNativeHealthArmor()
     SetMinimapComponentPosition('minimap', 'L', 'B', 0.0, -0.03, 0.15, 0.20)
     SetMinimapComponentPosition('minimap_mask', 'L', 'B', 0.0, 0.0, 0.128, 0.20)
     SetMinimapComponentPosition('minimap_blur', 'L', 'B', -0.01, -0.03, 0.17, 0.22)
@@ -367,6 +386,22 @@ CreateThread(function()
     registerFrameworkEvents()
     fetchPlayerInfo()
     setupMinimap()
+
+    -- Detect if player is already logged in (resource restart / late start)
+    -- This handles the case where helix_hud is restarted after player login
+    if not isPlayerLoaded then
+        -- Qbox: state bag is the most reliable indicator
+        if LocalPlayer.state.isLoggedIn then
+            isPlayerLoaded = true
+        end
+        -- Fallback: if ped exists and has health, player is likely in-game
+        if not isPlayerLoaded then
+            local ped = PlayerPedId()
+            if ped ~= 0 and DoesEntityExist(ped) and not IsEntityDead(ped) then
+                isPlayerLoaded = true
+            end
+        end
+    end
 
     startStatusThread()
     startVehicleThread()
