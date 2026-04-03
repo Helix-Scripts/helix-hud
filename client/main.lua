@@ -267,17 +267,6 @@ local function startStatusThread()
     end)
 end
 
---- Make native health/armor/stamina arc colours fully transparent.
---- Must be re-applied after every DisplayRadar(true) — the game
---- resets HUD colours when radar visibility changes.
-local function applyTransparentArcs()
-    ReplaceHudColourWithRgba(116, 0, 0, 0, 0)  -- Health bar fill
-    ReplaceHudColourWithRgba(117, 0, 0, 0, 0)  -- Health damage flash
-    ReplaceHudColourWithRgba(118, 0, 0, 0, 0)  -- Armor bar fill
-    ReplaceHudColourWithRgba(119, 0, 0, 0, 0)  -- Armor bar background
-    ReplaceHudColourWithRgba(152, 0, 0, 0, 0)  -- Stamina bar
-end
-
 --- Vehicle polling thread (speed, fuel, seatbelt, engine)
 local function startVehicleThread()
     if not Config.vehicle.enabled then
@@ -296,8 +285,6 @@ local function startVehicleThread()
                     if not isRadarVisible then
                         DisplayRadar(true)
                         isRadarVisible = true
-                        -- Re-apply transparent arcs (game resets colours on radar toggle)
-                        applyTransparentArcs()
                     end
                 else
                     if VehicleModule.get().active then
@@ -342,14 +329,13 @@ local function startNativeHudThread()
     CreateThread(function()
         while true do
             if isHudVisible then
-                -- Hide native components that helix_hud replaces
-                HideHudComponentThisFrame(1)   -- WANTED_STARS
-                HideHudComponentThisFrame(3)   -- CASH
-                HideHudComponentThisFrame(4)   -- MP_CASH
-                HideHudComponentThisFrame(6)   -- VEHICLE_NAME
-                HideHudComponentThisFrame(7)   -- AREA_NAME
-                HideHudComponentThisFrame(8)   -- VEHICLE_CLASS
-                HideHudComponentThisFrame(9)   -- STREET_NAME
+                -- Hide ALL native HUD components that helix_hud replaces.
+                -- Brute-force all 22 IDs to ensure the health/armor bars
+                -- below the minimap are covered. We'll narrow this down
+                -- once we confirm which IDs control the bars.
+                for i = 1, 22 do
+                    HideHudComponentThisFrame(i)
+                end
                 Wait(0)
             else
                 Wait(500)
@@ -360,11 +346,7 @@ end
 
 -- ---------------------------------------------------------------------------
 -- Minimap / radar management
--- The native health/armor bars are arcs rendered as part of the minimap
--- scaleform — they can't be hidden with HideHudComponentThisFrame or
--- ReplaceHudColourWithRgba reliably. The proven approach (used by qbx_hud)
--- is to hide the radar on foot and only show it in vehicles.
--- helix_hud's NUI replaces all info the minimap bars provided.
+-- Radar hidden on foot (no minimap needed), shown in vehicle for navigation.
 -- ---------------------------------------------------------------------------
 
 local isRadarVisible = false
@@ -373,7 +355,12 @@ local function setupMinimap()
     -- Start with radar hidden on foot
     DisplayRadar(false)
     isRadarVisible = false
-    -- No custom minimap positioning — let GTA use its defaults
+
+    -- Explicitly restore GTA default minimap positioning
+    -- (previous deploys set custom values that may be cached client-side)
+    SetMinimapComponentPosition('minimap', 'L', 'B', -0.0045, -0.002, 0.150, 0.188)
+    SetMinimapComponentPosition('minimap_mask', 'L', 'B', 0.0, 0.0, 0.128, 0.20)
+    SetMinimapComponentPosition('minimap_blur', 'L', 'B', -0.01, -0.015, 0.262, 0.300)
 end
 
 -- ---------------------------------------------------------------------------
