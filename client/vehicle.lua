@@ -36,11 +36,11 @@ end
 ---@param vehicle integer Vehicle entity handle
 function VehicleModule.poll(vehicle)
     cachedVehicle.active = true
+    cachedVehicle.engine = GetIsVehicleEngineRunning(vehicle)
     cachedVehicle.speed = HudUtils.getVehicleSpeed(vehicle)
-    cachedVehicle.rpm = GetVehicleCurrentRpm(vehicle) -- 0.0–1.0 normalized
+    cachedVehicle.rpm = cachedVehicle.engine and GetVehicleCurrentRpm(vehicle) or 0.0
     cachedVehicle.gear = GetVehicleCurrentGear(vehicle) -- 0=N, 1-6=forward gears
     cachedVehicle.fuel = HudUtils.getVehicleFuel(vehicle)
-    cachedVehicle.engine = GetIsVehicleEngineRunning(vehicle)
     cachedVehicle.seatbelt = HudUtils.isSeatbeltOn()
     cachedVehicle.engineHealth = GetVehicleEngineHealth(vehicle) -- 0–1000
     cachedVehicle.speedUnit = Config.vehicle.speedUnit

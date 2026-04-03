@@ -5,6 +5,7 @@
 local isHudVisible = false
 local isNuiReady = false
 local isPauseMenuActive = false
+local isPlayerLoaded = false
 
 --- Player info (event-driven, not polled)
 local playerInfo = {
@@ -38,6 +39,7 @@ local function sendHudUpdate()
             hunger = status.hunger,
             thirst = status.thirst,
             stress = status.stress,
+            isDead = status.isDead,
 
             -- Identity
             playerId = playerInfo.serverId,
@@ -134,7 +136,21 @@ local function registerFrameworkEvents()
         end)
 
         RegisterNetEvent('QBCore:Client:OnPlayerLoaded', function()
+            isPlayerLoaded = true
             fetchPlayerInfo()
+            if isNuiReady then
+                setHudVisible(true)
+                sendHudUpdate()
+            end
+        end)
+
+        -- Also check if already loaded (reconnect / late start)
+        pcall(function()
+            local QBCore = exports['qb-core']:GetCoreObject() or exports['qbx_core']:GetCoreObject()
+            local PlayerData = QBCore.Functions.GetPlayerData()
+            if PlayerData and PlayerData.citizenid and PlayerData.citizenid ~= '' then
+                isPlayerLoaded = true
+            end
         end)
     elseif fw == 'esx' then
         RegisterNetEvent('esx:setAccountMoney', function(account)
@@ -150,7 +166,12 @@ local function registerFrameworkEvents()
         end)
 
         RegisterNetEvent('esx:playerLoaded', function()
+            isPlayerLoaded = true
             fetchPlayerInfo()
+            if isNuiReady then
+                setHudVisible(true)
+                sendHudUpdate()
+            end
         end)
     end
 end
@@ -182,10 +203,26 @@ RegisterNUICallback('hudReady', function(_, cb)
     isNuiReady = true
     cb('ok')
 
-    -- Send initial config and state
+    -- Send initial config but DON'T show HUD until player is loaded
     sendHudConfig()
-    setHudVisible(true)
-    sendHudUpdate()
+    if isPlayerLoaded then
+        setHudVisible(true)
+        sendHudUpdate()
+    end
+end)
+
+-- ---------------------------------------------------------------------------
+-- Fallback: playerSpawned event (works for all frameworks)
+-- ---------------------------------------------------------------------------
+
+AddEventHandler('playerSpawned', function()
+    if not isPlayerLoaded then
+        isPlayerLoaded = true
+        if isNuiReady then
+            setHudVisible(true)
+            sendHudUpdate()
+        end
+    end
 end)
 
 -- ---------------------------------------------------------------------------
@@ -251,6 +288,46 @@ local function startPauseMenuThread()
 end
 
 -- ---------------------------------------------------------------------------
+-- Hide native GTA HUD elements that overlap with helix_hud
+-- ---------------------------------------------------------------------------
+
+local function startNativeHudThread()
+    CreateThread(function()
+        while true do
+            if isHudVisible then
+                -- Hide native components that helix_hud replaces
+                HideHudComponentThisFrame(1)   -- WANTED_STARS
+                HideHudComponentThisFrame(3)   -- CASH
+                HideHudComponentThisFrame(4)   -- MP_CASH
+                HideHudComponentThisFrame(6)   -- VEHICLE_NAME
+                HideHudComponentThisFrame(7)   -- AREA_NAME
+                HideHudComponentThisFrame(8)   -- VEHICLE_CLASS
+                HideHudComponentThisFrame(9)   -- STREET_NAME
+                Wait(0)
+            else
+                Wait(500)
+            end
+        end
+    end)
+end
+
+-- ---------------------------------------------------------------------------
+-- Minimap management — reposition to avoid overlap with HUD
+-- ---------------------------------------------------------------------------
+
+local function setupMinimap()
+    -- Minimap anchor: push down slightly to avoid stat bar overlap
+    -- Default GTA minimap sits at bottom-left; we keep it there but adjust
+    -- the safezone to match helix_hud's stat bar positioning
+    SetMinimapComponentPosition('minimap', 'L', 'B', 0.0, -0.03, 0.15, 0.20)
+    SetMinimapComponentPosition('minimap_mask', 'L', 'B', 0.0, 0.0, 0.128, 0.20)
+    SetMinimapComponentPosition('minimap_blur', 'L', 'B', -0.01, -0.03, 0.17, 0.22)
+
+    -- Ensure radar is visible
+    DisplayRadar(true)
+end
+
+-- ---------------------------------------------------------------------------
 -- Initialization
 -- ---------------------------------------------------------------------------
 
@@ -267,8 +344,10 @@ CreateThread(function()
 
     registerFrameworkEvents()
     fetchPlayerInfo()
+    setupMinimap()
 
     startStatusThread()
     startVehicleThread()
     startPauseMenuThread()
+    startNativeHudThread()
 end)

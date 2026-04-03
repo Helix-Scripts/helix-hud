@@ -85,15 +85,17 @@ function HudUtils.isSeatbeltOn()
         return false
     end
 
-    -- Check common seatbelt exports
-    local ok, result
-
-    ok, result = pcall(function()
-        return exports['qbx_seatbelt']:IsWearingSeatbelt()
-    end)
-    if ok and result ~= nil then
-        return result == true
+    -- Primary: state bags (used by qbx_seatbelt and most modern seatbelt resources)
+    local state = LocalPlayer.state
+    if state.seatbelt ~= nil then
+        return state.seatbelt == true
     end
+    if state.harness ~= nil and state.harness then
+        return true
+    end
+
+    -- Fallback: check common seatbelt exports
+    local ok, result
 
     ok, result = pcall(function()
         return exports['qb-seatbelt']:IsWearingSeatbelt()

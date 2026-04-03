@@ -5,6 +5,7 @@
 ---@field thirst number 0-100
 ---@field stress number 0-100
 ---@field stamina number 0-100
+---@field isDead boolean Whether the player is dead or incapacitated
 
 ---@class StatusModule
 StatusModule = {}
@@ -16,6 +17,7 @@ local cachedStatus = {
     thirst = 100,
     stress = 0,
     stamina = 100,
+    isDead = false,
 }
 
 --- Get the current cached status data
@@ -29,10 +31,28 @@ end
 function StatusModule.pollNatives()
     local ped = PlayerPedId()
 
-    -- Health: GTA returns 100-200, map to 0-100
-    local rawHealth = GetEntityHealth(ped)
-    local maxHealth = GetEntityMaxHealth(ped)
-    cachedStatus.health = HudUtils.clamp(HudUtils.round(((rawHealth - 100) / (maxHealth - 100)) * 100), 0, 100)
+    -- Dead / incapacitated detection (framework metadata takes priority)
+    local isDead = IsEntityDead(ped)
+    if not isDead then
+        pcall(function()
+            local QBCore = exports['qb-core']:GetCoreObject() or exports['qbx_core']:GetCoreObject()
+            local PlayerData = QBCore.Functions.GetPlayerData()
+            if PlayerData and PlayerData.metadata then
+                isDead = PlayerData.metadata.inlaststand or PlayerData.metadata.isdead or false
+            end
+        end)
+    end
+
+    if isDead then
+        cachedStatus.health = 0
+        cachedStatus.isDead = true
+    else
+        -- Health: GTA returns 100-200, map to 0-100
+        local rawHealth = GetEntityHealth(ped)
+        local maxHealth = GetEntityMaxHealth(ped)
+        cachedStatus.health = HudUtils.clamp(HudUtils.round(((rawHealth - 100) / (maxHealth - 100)) * 100), 0, 100)
+        cachedStatus.isDead = false
+    end
 
     -- Armor: 0-100 native
     cachedStatus.armor = HudUtils.clamp(GetPedArmour(ped), 0, 100)
