@@ -381,10 +381,10 @@ local function setupMinimap()
     DisplayRadar(false)
     isRadarVisible = false
 
-    -- Minimap sizing — matches qbx_hud square map values (what Robin is used to)
-    SetMinimapComponentPosition('minimap', 'L', 'B', 0.0, -0.047, 0.1638, 0.183)
-    SetMinimapComponentPosition('minimap_mask', 'L', 'B', 0.0, 0.0, 0.128, 0.20)
-    SetMinimapComponentPosition('minimap_blur', 'L', 'B', -0.01, 0.025, 0.262, 0.300)
+    -- Minimap sizing — compact, roughly half of qbx_hud square map
+    SetMinimapComponentPosition('minimap', 'L', 'B', 0.0, -0.025, 0.08, 0.09)
+    SetMinimapComponentPosition('minimap_mask', 'L', 'B', 0.0, 0.0, 0.065, 0.10)
+    SetMinimapComponentPosition('minimap_blur', 'L', 'B', -0.005, 0.01, 0.13, 0.15)
 end
 
 -- ---------------------------------------------------------------------------
