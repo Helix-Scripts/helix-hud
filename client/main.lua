@@ -292,11 +292,11 @@ local function startVehicleThread()
                         VehicleModule.reset()
                         sendHudUpdate()
                     end
-                    -- Hide radar on foot (also hides native health/armor arcs)
-                    if isRadarVisible then
-                        DisplayRadar(false)
-                        isRadarVisible = false
-                    end
+                    -- Enforce radar off every tick when on foot.
+                    -- Other resources (qbx_core, spawnmanager) may re-enable
+                    -- radar during spawn flow — we can't rely on event timing.
+                    DisplayRadar(false)
+                    isRadarVisible = false
                 end
             end
             Wait(Config.updateIntervals.vehicle)
@@ -381,10 +381,10 @@ local function setupMinimap()
     DisplayRadar(false)
     isRadarVisible = false
 
-    -- Explicitly restore GTA default minimap positioning
-    SetMinimapComponentPosition('minimap', 'L', 'B', -0.0045, -0.002, 0.150, 0.188)
+    -- Minimap sizing — matches qbx_hud square map values (what Robin is used to)
+    SetMinimapComponentPosition('minimap', 'L', 'B', 0.0, -0.047, 0.1638, 0.183)
     SetMinimapComponentPosition('minimap_mask', 'L', 'B', 0.0, 0.0, 0.128, 0.20)
-    SetMinimapComponentPosition('minimap_blur', 'L', 'B', -0.01, -0.015, 0.262, 0.300)
+    SetMinimapComponentPosition('minimap_blur', 'L', 'B', -0.01, 0.025, 0.262, 0.300)
 end
 
 -- ---------------------------------------------------------------------------
