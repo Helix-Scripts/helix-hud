@@ -20,119 +20,99 @@ local cachedStatus = {
     isDead = false,
 }
 
+-- Cached at init — never changes at runtime
+---@type string|nil
+local cachedFramework = nil
+
+-- Cached core objects — resolved once at init
+---@type table|nil
+local cachedQBCore = nil
+---@type table|nil
+local cachedESX = nil
+
+--- Initialize framework cache. Called once from main.lua init.
+function StatusModule.initCache()
+    local ok, fw = pcall(function()
+        return exports['helix_lib']:bridge_framework()
+    end)
+    if ok and fw then
+        cachedFramework = fw
+    end
+
+    if cachedFramework == 'qbox' or cachedFramework == 'qbcore' then
+        -- Try qbx_core first (Qbox), fall back to qb-core
+        pcall(function() cachedQBCore = exports['qbx_core']:GetCoreObject() end)
+        if not cachedQBCore then
+            pcall(function() cachedQBCore = exports['qb-core']:GetCoreObject() end)
+        end
+    elseif cachedFramework == 'esx' then
+        pcall(function() cachedESX = exports['es_extended']:getSharedObject() end)
+    end
+end
+
 --- Get the current cached status data
 ---@return StatusData
 function StatusModule.get()
     return cachedStatus
 end
 
---- Poll native player stats (health, armor, stamina)
---- Called from the status thread at Config.updateIntervals.health
-function StatusModule.pollNatives()
+--- Poll all status data in a single pass. Called from status thread.
+--- Combines native reads, dead detection, and framework metadata into
+--- one function to avoid redundant GetPlayerData calls.
+function StatusModule.poll()
     local ped = PlayerPedId()
 
-    -- Dead / incapacitated detection (framework metadata takes priority)
+    -- Native reads (cheap — direct native calls, no cross-resource IPC)
+    local rawHealth = GetEntityHealth(ped)
+    local maxHealth = GetEntityMaxHealth(ped)
+    cachedStatus.armor = HudUtils.clamp(GetPedArmour(ped), 0, 100)
+    cachedStatus.stamina = HudUtils.clamp(HudUtils.round(GetPlayerStamina(PlayerId())), 0, 100)
+
+    -- Dead detection + framework metadata (single GetPlayerData call)
     local isDead = IsEntityDead(ped)
-    if not isDead then
-        pcall(function()
-            local QBCore = exports['qb-core']:GetCoreObject() or exports['qbx_core']:GetCoreObject()
-            local PlayerData = QBCore.Functions.GetPlayerData()
+
+    if cachedFramework == 'qbox' or cachedFramework == 'qbcore' then
+        if cachedQBCore then
+            local PlayerData = cachedQBCore.Functions.GetPlayerData()
             if PlayerData and PlayerData.metadata then
-                isDead = PlayerData.metadata.inlaststand or PlayerData.metadata.isdead or false
+                local meta = PlayerData.metadata
+                -- Dead/incapacitated from framework
+                if not isDead then
+                    isDead = meta.inlaststand or meta.isdead or false
+                end
+                -- Hunger/thirst/stress from same PlayerData (no second call)
+                if Config.elements.hunger then
+                    cachedStatus.hunger = HudUtils.clamp(HudUtils.round(meta.hunger or 100), 0, 100)
+                end
+                if Config.elements.thirst then
+                    cachedStatus.thirst = HudUtils.clamp(HudUtils.round(meta.thirst or 100), 0, 100)
+                end
+                if Config.elements.stress then
+                    cachedStatus.stress = HudUtils.clamp(HudUtils.round(meta.stress or 0), 0, 100)
+                end
             end
-        end)
+        end
+    elseif cachedFramework == 'esx' then
+        if cachedESX then
+            local playerData = cachedESX.GetPlayerData()
+            if playerData and playerData.metadata then
+                if Config.elements.hunger then
+                    cachedStatus.hunger = HudUtils.clamp(HudUtils.round(playerData.metadata.hunger or 100), 0, 100)
+                end
+                if Config.elements.thirst then
+                    cachedStatus.thirst = HudUtils.clamp(HudUtils.round(playerData.metadata.thirst or 100), 0, 100)
+                end
+            end
+            cachedStatus.stress = 0
+        end
     end
 
+    -- Apply dead state
     if isDead then
         cachedStatus.health = 0
         cachedStatus.isDead = true
     else
-        -- Health: GTA returns 100-200, map to 0-100
-        local rawHealth = GetEntityHealth(ped)
-        local maxHealth = GetEntityMaxHealth(ped)
         cachedStatus.health = HudUtils.clamp(HudUtils.round(((rawHealth - 100) / (maxHealth - 100)) * 100), 0, 100)
         cachedStatus.isDead = false
     end
-
-    -- Armor: 0-100 native
-    cachedStatus.armor = HudUtils.clamp(GetPedArmour(ped), 0, 100)
-
-    -- Stamina: 0-100 (inverted — native returns remaining stamina)
-    cachedStatus.stamina = HudUtils.clamp(HudUtils.round(GetPlayerStamina(PlayerId())), 0, 100)
-end
-
---- Poll framework-dependent stats (hunger, thirst, stress)
---- Uses QBCore/Qbox PlayerData metadata or ESX status
-function StatusModule.pollFramework()
-    local fw = exports['helix_lib']:bridge_framework()
-    if not fw then
-        return
-    end
-
-    if fw == 'qbox' or fw == 'qbcore' then
-        StatusModule._pollQB()
-    elseif fw == 'esx' then
-        StatusModule._pollESX()
-    end
-    -- standalone: hunger/thirst/stress not available, bars will be hidden
-end
-
---- Poll Qbox/QBCore player metadata for hunger, thirst, stress
-function StatusModule._pollQB()
-    local ok, QBCore = pcall(function()
-        return exports['qb-core']:GetCoreObject()
-    end)
-    if not ok then
-        -- Try qbx_core
-        ok, QBCore = pcall(function()
-            return exports['qbx_core']:GetCoreObject()
-        end)
-    end
-    if not ok or not QBCore then
-        return
-    end
-
-    local PlayerData = QBCore.Functions.GetPlayerData()
-    if not PlayerData or not PlayerData.metadata then
-        return
-    end
-
-    local meta = PlayerData.metadata
-    if Config.elements.hunger then
-        cachedStatus.hunger = HudUtils.clamp(HudUtils.round(meta.hunger or 100), 0, 100)
-    end
-    if Config.elements.thirst then
-        cachedStatus.thirst = HudUtils.clamp(HudUtils.round(meta.thirst or 100), 0, 100)
-    end
-    if Config.elements.stress then
-        cachedStatus.stress = HudUtils.clamp(HudUtils.round(meta.stress or 0), 0, 100)
-    end
-end
-
---- Poll ESX status for hunger, thirst, stress
-function StatusModule._pollESX()
-    local ok, ESX = pcall(function()
-        return exports['es_extended']:getSharedObject()
-    end)
-    if not ok or not ESX then
-        return
-    end
-
-    local playerData = ESX.GetPlayerData()
-    if not playerData then
-        return
-    end
-
-    -- ESX uses esx_status or esx_basicneeds
-    -- Status values vary by implementation, attempt common patterns
-    if playerData.metadata then
-        if Config.elements.hunger then
-            cachedStatus.hunger = HudUtils.clamp(HudUtils.round(playerData.metadata.hunger or 100), 0, 100)
-        end
-        if Config.elements.thirst then
-            cachedStatus.thirst = HudUtils.clamp(HudUtils.round(playerData.metadata.thirst or 100), 0, 100)
-        end
-    end
-    -- ESX typically doesn't have stress
-    cachedStatus.stress = 0
 end

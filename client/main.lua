@@ -1,6 +1,6 @@
 --- helix_hud client entry point
 --- Manages polling threads and NUI communication.
---- Performance target: < 0.05ms idle resmon
+--- Performance target: < 0.01ms idle resmon
 
 local isHudVisible = false
 local isNuiReady = false
@@ -16,48 +16,72 @@ local playerInfo = {
 }
 
 -- ---------------------------------------------------------------------------
--- NUI Communication
+-- NUI Communication (with diff — skip sends when nothing changed)
 -- ---------------------------------------------------------------------------
 
---- Send a batched HUD update to NUI
---- Flattens status, vehicle, and playerInfo into a single data table
---- matching the React HudState interface
+local lastSentJson = ''
+
+--- Build the HUD data payload
+---@return table
+local function buildHudData()
+    local status = StatusModule.get()
+    local vehicle = VehicleModule.get()
+
+    return {
+        -- Character stats
+        health = status.health,
+        armor = status.armor,
+        hunger = status.hunger,
+        thirst = status.thirst,
+        stress = status.stress,
+        isDead = status.isDead,
+
+        -- Identity
+        playerId = playerInfo.serverId,
+        jobLabel = playerInfo.job,
+        showIdJob = Config.elements.serverId or Config.elements.job,
+
+        -- Vehicle
+        inVehicle = vehicle.active,
+        speed = vehicle.speed,
+        rpm = vehicle.rpm,
+        gear = vehicle.gear,
+        fuel = vehicle.fuel,
+        engineOn = vehicle.engine,
+        seatbeltOn = vehicle.seatbelt,
+        headlightsOn = vehicle.lightsOn,
+        engineHealth = vehicle.engineHealth,
+    }
+end
+
+--- Send a batched HUD update to NUI, but only if data actually changed
 local function sendHudUpdate()
     if not isNuiReady or not isHudVisible then
         return
     end
 
-    local status = StatusModule.get()
-    local vehicle = VehicleModule.get()
+    local data = buildHudData()
+    local encoded = json.encode(data)
+
+    -- Skip NUI IPC when nothing changed (biggest idle perf win)
+    if encoded == lastSentJson then
+        return
+    end
+    lastSentJson = encoded
 
     SendNUIMessage({
         type = 'hud:update',
-        data = {
-            -- Character stats
-            health = status.health,
-            armor = status.armor,
-            hunger = status.hunger,
-            thirst = status.thirst,
-            stress = status.stress,
-            isDead = status.isDead,
-
-            -- Identity
-            playerId = playerInfo.serverId,
-            jobLabel = playerInfo.job,
-            showIdJob = Config.elements.serverId or Config.elements.job,
-
-            -- Vehicle
-            inVehicle = vehicle.active,
-            speed = vehicle.speed,
-            rpm = vehicle.rpm,
-            gear = vehicle.gear,
-            fuel = vehicle.fuel,
-            engineOn = vehicle.engine,
-            seatbeltOn = vehicle.seatbelt,
-            headlightsOn = vehicle.lightsOn,
-            engineHealth = vehicle.engineHealth,
-        },
+        data = data,
     })
+end
+
+--- Force send (bypasses diff — used for initial update after visibility change)
+local function sendHudUpdateForced()
+    if not isNuiReady or not isHudVisible then
+        return
+    end
+    lastSentJson = '' -- invalidate cache
+    sendHudUpdate()
 end
 
 --- Send config to NUI as a separate hud:config message
@@ -140,13 +164,13 @@ local function registerFrameworkEvents()
             fetchPlayerInfo()
             if isNuiReady then
                 setHudVisible(true)
-                sendHudUpdate()
+                sendHudUpdateForced()
             end
         end)
 
-        -- Also check if already loaded (reconnect / late start)
+        -- Check if already loaded (reconnect / late start)
         pcall(function()
-            local QBCore = exports['qb-core']:GetCoreObject() or exports['qbx_core']:GetCoreObject()
+            local QBCore = exports['qbx_core']:GetCoreObject() or exports['qb-core']:GetCoreObject()
             local PlayerData = QBCore.Functions.GetPlayerData()
             if PlayerData and PlayerData.citizenid and PlayerData.citizenid ~= '' then
                 isPlayerLoaded = true
@@ -170,7 +194,7 @@ local function registerFrameworkEvents()
             fetchPlayerInfo()
             if isNuiReady then
                 setHudVisible(true)
-                sendHudUpdate()
+                sendHudUpdateForced()
             end
         end)
     end
@@ -207,7 +231,7 @@ RegisterNUICallback('hudReady', function(_, cb)
     sendHudConfig()
     if isPlayerLoaded then
         setHudVisible(true)
-        sendHudUpdate()
+        sendHudUpdateForced()
     end
 end)
 
@@ -220,7 +244,7 @@ AddEventHandler('playerSpawned', function()
         isPlayerLoaded = true
         if isNuiReady then
             setHudVisible(true)
-            sendHudUpdate()
+            sendHudUpdateForced()
         end
     end
 end)
@@ -230,13 +254,13 @@ end)
 -- ---------------------------------------------------------------------------
 
 --- Status polling thread (health, armor, hunger, thirst, stress, stamina)
+--- Single combined poll — no redundant export calls
 local function startStatusThread()
     CreateThread(function()
         while true do
             if isHudVisible and not isPauseMenuActive then
-                StatusModule.pollNatives()
-                StatusModule.pollFramework()
-                sendHudUpdate()
+                StatusModule.poll()
+                sendHudUpdate()  -- diffed — skips NUI IPC when nothing changed
             end
             Wait(Config.updateIntervals.health)
         end
@@ -316,14 +340,9 @@ end
 -- ---------------------------------------------------------------------------
 
 local function setupMinimap()
-    -- Minimap anchor: push down slightly to avoid stat bar overlap
-    -- Default GTA minimap sits at bottom-left; we keep it there but adjust
-    -- the safezone to match helix_hud's stat bar positioning
     SetMinimapComponentPosition('minimap', 'L', 'B', 0.0, -0.03, 0.15, 0.20)
     SetMinimapComponentPosition('minimap_mask', 'L', 'B', 0.0, 0.0, 0.128, 0.20)
     SetMinimapComponentPosition('minimap_blur', 'L', 'B', -0.01, -0.03, 0.17, 0.22)
-
-    -- Ensure radar is visible
     DisplayRadar(true)
 end
 
@@ -339,6 +358,9 @@ CreateThread(function()
 
     -- Small delay to let framework initialize
     Wait(1000)
+
+    -- Cache framework + core objects ONCE (never changes at runtime)
+    StatusModule.initCache()
 
     playerInfo.serverId = GetPlayerServerId(PlayerId())
 
