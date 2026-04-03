@@ -161,6 +161,8 @@ local function registerFrameworkEvents()
 
         RegisterNetEvent('QBCore:Client:OnPlayerLoaded', function()
             isPlayerLoaded = true
+            DisplayRadar(false)
+            isRadarVisible = false
             fetchPlayerInfo()
             if isNuiReady then
                 setHudVisible(true)
@@ -191,6 +193,8 @@ local function registerFrameworkEvents()
 
         RegisterNetEvent('esx:playerLoaded', function()
             isPlayerLoaded = true
+            DisplayRadar(false)
+            isRadarVisible = false
             fetchPlayerInfo()
             if isNuiReady then
                 setHudVisible(true)
@@ -242,6 +246,8 @@ end)
 AddEventHandler('playerSpawned', function()
     if not isPlayerLoaded then
         isPlayerLoaded = true
+        DisplayRadar(false)
+        isRadarVisible = false
         if isNuiReady then
             setHudVisible(true)
             sendHudUpdateForced()
@@ -329,13 +335,16 @@ local function startNativeHudThread()
     CreateThread(function()
         while true do
             if isHudVisible then
-                -- Hide ALL native HUD components that helix_hud replaces.
-                -- Brute-force all 22 IDs to ensure the health/armor bars
-                -- below the minimap are covered. We'll narrow this down
-                -- once we confirm which IDs control the bars.
-                for i = 1, 22 do
-                    HideHudComponentThisFrame(i)
-                end
+                -- Hide native HUD text overlays that helix_hud replaces.
+                -- Note: native health/armor bars below minimap are part of
+                -- the minimap scaleform and CANNOT be hidden with this native.
+                -- Those are masked by helix_hud's NUI rendering on top.
+                HideHudComponentThisFrame(3)   -- CASH
+                HideHudComponentThisFrame(4)   -- MP_CASH
+                HideHudComponentThisFrame(6)   -- VEHICLE_NAME
+                HideHudComponentThisFrame(7)   -- AREA_NAME
+                HideHudComponentThisFrame(8)   -- VEHICLE_CLASS
+                HideHudComponentThisFrame(9)   -- STREET_NAME
                 Wait(0)
             else
                 Wait(500)
@@ -386,25 +395,16 @@ CreateThread(function()
     setupMinimap()
 
     -- Detect if player is already logged in (resource restart / late start)
-    -- This handles the case where helix_hud is restarted after player login.
-    -- The hudReady callback fires BEFORE this init thread completes (due to
-    -- Wait(1000) above), so we must also trigger visibility here.
-    if not isPlayerLoaded then
-        -- Qbox: state bag is the most reliable indicator
-        if LocalPlayer.state.isLoggedIn then
-            isPlayerLoaded = true
-        end
-        -- Fallback: if ped exists and has health, player is likely in-game
-        if not isPlayerLoaded then
-            local ped = PlayerPedId()
-            if ped ~= 0 and DoesEntityExist(ped) and not IsEntityDead(ped) then
-                isPlayerLoaded = true
-            end
-        end
+    -- Only use state bag — ped existence is unreliable (ped exists during
+    -- character selection screen, which caused false-positive regression).
+    if not isPlayerLoaded and LocalPlayer.state.isLoggedIn then
+        isPlayerLoaded = true
     end
 
     -- If player was already loaded (resource restart), show HUD now
     if isPlayerLoaded and isNuiReady then
+        DisplayRadar(false)
+        isRadarVisible = false
         setHudVisible(true)
         sendHudUpdateForced()
     end
