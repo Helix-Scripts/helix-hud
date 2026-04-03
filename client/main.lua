@@ -285,6 +285,8 @@ local function startVehicleThread()
                     if not isRadarVisible then
                         DisplayRadar(true)
                         isRadarVisible = true
+                        -- Re-apply transparent arcs (game resets colours on radar toggle)
+                        applyTransparentArcs()
                     end
                 else
                     if VehicleModule.get().active then
@@ -356,15 +358,22 @@ end
 
 local isRadarVisible = false
 
+--- Make native health/armor/stamina arc colours fully transparent.
+--- Must be re-applied after every DisplayRadar(true) — the game
+--- resets HUD colours when radar visibility changes.
+local function applyTransparentArcs()
+    ReplaceHudColourWithRgba(116, 0, 0, 0, 0)  -- Health bar fill
+    ReplaceHudColourWithRgba(117, 0, 0, 0, 0)  -- Health damage flash
+    ReplaceHudColourWithRgba(118, 0, 0, 0, 0)  -- Armor bar fill
+    ReplaceHudColourWithRgba(119, 0, 0, 0, 0)  -- Armor bar background
+    ReplaceHudColourWithRgba(152, 0, 0, 0, 0)  -- Stamina bar
+end
+
 local function setupMinimap()
-    -- Start with radar hidden (hides health/armor arcs too)
+    -- Start with radar hidden on foot
     DisplayRadar(false)
     isRadarVisible = false
-
-    -- Position for when it does show (in vehicle)
-    SetMinimapComponentPosition('minimap', 'L', 'B', 0.0, -0.03, 0.15, 0.20)
-    SetMinimapComponentPosition('minimap_mask', 'L', 'B', 0.0, 0.0, 0.128, 0.20)
-    SetMinimapComponentPosition('minimap_blur', 'L', 'B', -0.01, -0.03, 0.17, 0.22)
+    -- No custom minimap positioning — let GTA use its defaults
 end
 
 -- ---------------------------------------------------------------------------
