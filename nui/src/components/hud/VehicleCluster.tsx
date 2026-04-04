@@ -28,8 +28,8 @@ export const VehicleCluster = memo(function VehicleCluster({
           right: positions.vehicleCluster.right,
         }}
       >
-        <SpeedReadout speed={speed} gear={gear} unit={speedUnit} />
-        <RpmBar rpm={rpm} />
+        <SpeedReadout speed={speed} unit={speedUnit} />
+        <RpmBar rpm={rpm} gear={gear} />
         <FuelBar fuel={fuel} />
         <StatusIndicators
           engineOn={engineOn}
