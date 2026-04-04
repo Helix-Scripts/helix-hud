@@ -6,18 +6,15 @@ A high-performance, customizable HUD for FiveM servers. Built with React + TypeS
 
 ## Preview
 
-![Helix HUD Preview](docs/screenshots/preview-overview.png)
+![Helix HUD Overview](docs/screenshots/full-hud.png)
 
-### Dark Theme
-| On Foot | In Vehicle | Combat |
-|---------|-----------|--------|
-| ![On Foot](docs/screenshots/preview-dark-onfoot.png) | ![Vehicle](docs/screenshots/preview-dark-vehicle.png) | ![Combat](docs/screenshots/preview-dark-combat.png) |
+| Status Bars | Vehicle Panel | Critical State |
+|-------------|--------------|----------------|
+| ![Status Bars](docs/screenshots/full-stats.png) | ![Vehicle Panel](docs/screenshots/vehicle-panel.png) | ![Critical State](docs/screenshots/critical-state.png) |
 
-### Light Theme
-![Light Theme](docs/screenshots/preview-light-onfoot.png)
-
-### Vehicle Warnings
-![Low Fuel Warning](docs/screenshots/preview-dark-vehicle-lowfuel.png)
+| Vitals & Needs | Seatbelt Warning |
+|----------------|-----------------|
+| ![Vitals](docs/screenshots/vitals-needs.png) | ![Seatbelt Warning](docs/screenshots/seatbelt-warning.png) |
 
 ## Features
 
