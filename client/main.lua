@@ -6,6 +6,8 @@ local isHudVisible = false
 local isNuiReady = false
 local isPauseMenuActive = false
 local isPlayerLoaded = false
+local isRadarVisible = false
+local minimapScaleform = 0
 
 --- Player info (event-driven, not polled)
 local playerInfo = {
@@ -327,9 +329,6 @@ end
 -- Hide native GTA HUD elements that overlap with helix_hud
 -- ---------------------------------------------------------------------------
 
---- Minimap scaleform handle (initialized in setupMinimap)
-local minimapScaleform = 0
-
 local function startNativeHudThread()
     CreateThread(function()
         while true do
@@ -354,6 +353,18 @@ local function startNativeHudThread()
                     EndScaleformMovieMethod()
                 end
 
+                -- Enforce minimap sizing every frame when radar is visible.
+                -- On fresh login, the game or other resources can enable bigmap
+                -- mode during the spawn flow. SetMinimapComponentPosition only
+                -- applies to the normal minimap — bigmap ignores it entirely.
+                -- Forcing bigmap off each frame ensures our sizing always wins.
+                if isRadarVisible then
+                    SetRadarBigmapEnabled(false, false)
+                    SetMinimapComponentPosition('minimap', 'L', 'B', -0.02, -0.025, 0.20, 0.18)
+                    SetMinimapComponentPosition('minimap_mask', 'L', 'B', -0.02, 0.0, 0.16, 0.20)
+                    SetMinimapComponentPosition('minimap_blur', 'L', 'B', -0.025, 0.01, 0.32, 0.30)
+                end
+
                 Wait(0)
             else
                 Wait(500)
@@ -367,13 +378,17 @@ end
 -- Radar hidden on foot (no minimap needed), shown in vehicle for navigation.
 -- ---------------------------------------------------------------------------
 
-local isRadarVisible = false
-
 local function setupMinimap()
-    -- Request the minimap scaleform handle and force-initialize it.
-    -- The bigmap toggle is required to fully load the scaleform —
-    -- without it, BeginScaleformMovieMethod calls silently fail.
+    -- Request the minimap scaleform handle and wait until it is fully loaded.
+    -- On fresh connect the scaleform may take several frames to load; without
+    -- this wait, SETUP_HEALTH_ARMOUR and component positioning silently fail.
     minimapScaleform = RequestScaleformMovie('minimap')
+    while not HasScaleformMovieLoaded(minimapScaleform) do
+        Wait(0)
+    end
+
+    -- The bigmap toggle forces the scaleform to fully initialize its
+    -- internal state — without it, certain methods silently no-op.
     SetRadarBigmapEnabled(true, false)
     Wait(0)
     SetRadarBigmapEnabled(false, false)
@@ -382,7 +397,9 @@ local function setupMinimap()
     DisplayRadar(false)
     isRadarVisible = false
 
-    -- Minimap sizing — tuned with Robin
+    -- Minimap sizing — tuned with Robin.
+    -- Also enforced every frame in startNativeHudThread to survive
+    -- deferred game resets and bigmap re-activation on fresh login.
     SetMinimapComponentPosition('minimap', 'L', 'B', -0.02, -0.025, 0.20, 0.18)
     SetMinimapComponentPosition('minimap_mask', 'L', 'B', -0.02, 0.0, 0.16, 0.20)
     SetMinimapComponentPosition('minimap_blur', 'L', 'B', -0.025, 0.01, 0.32, 0.30)
