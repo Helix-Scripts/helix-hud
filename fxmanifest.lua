@@ -4,7 +4,7 @@ game('gta5')
 name('helix_hud')
 description('High-performance HUD for FiveM — sub-0.05ms idle resmon')
 author('Helix Scripts')
-version('0.1.0')
+version('1.0.0')
 repository('https://github.com/Helix-Scripts/helix-hud')
 
 lua54('yes')
