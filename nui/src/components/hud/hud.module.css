@@ -143,6 +143,16 @@
   animation: speedFlash 0.4s ease-out;
 }
 
+/* Speed meta column (gear + unit stacked to the right of speed value) */
+.speedMeta {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 2px;
+  margin-bottom: 6px;
+}
+
 .speedUnit {
   font-size: 9px;
   font-weight: 600;
@@ -150,26 +160,12 @@
   letter-spacing: 0.15em;
   color: var(--hud-text-label);
   text-shadow: var(--shadow-light);
-  margin-bottom: 6px;
+  line-height: 1;
 }
 
-/* Gear Indicator */
-.gear {
-  position: absolute;
-  width: 28px;
-  height: 28px;
-  border: 1.5px solid var(--hud-border-subtle);
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  transform: scale(var(--hud-scale));
-  transform-origin: center;
-  transition: opacity 0.4s ease;
-}
-
-.gearValue {
-  font-size: 20px;
+/* Gear Indicator — inline within speed row */
+.gearInline {
+  font-size: 18px;
   font-weight: 700;
   color: var(--hud-text-secondary);
   text-shadow: var(--shadow-standard);
@@ -178,12 +174,6 @@
 
 .gearNeutral {
   color: var(--hud-text-label);
-}
-
-.gearHidden {
-  opacity: 0;
-  pointer-events: none;
-  transition: opacity 0.4s ease;
 }
 
 /* RPM Bar */

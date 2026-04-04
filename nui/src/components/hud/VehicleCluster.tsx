@@ -1,6 +1,5 @@
 import { memo } from 'react';
 import { SpeedReadout } from './SpeedReadout';
-import { GearIndicator } from './GearIndicator';
 import { RpmBar } from './RpmBar';
 import { FuelBar } from './FuelBar';
 import { StatusIndicators } from './StatusIndicators';
@@ -22,11 +21,6 @@ export const VehicleCluster = memo(function VehicleCluster({
 
   return (
     <>
-      <GearIndicator
-        gear={gear}
-        visible={inVehicle}
-        position={positions.gear}
-      />
       <div
         className={`${styles.vehicleCluster} ${!inVehicle ? styles.vehicleClusterHidden : ''}`}
         style={{
@@ -34,7 +28,7 @@ export const VehicleCluster = memo(function VehicleCluster({
           right: positions.vehicleCluster.right,
         }}
       >
-        <SpeedReadout speed={speed} unit={speedUnit} />
+        <SpeedReadout speed={speed} gear={gear} unit={speedUnit} />
         <RpmBar rpm={rpm} />
         <FuelBar fuel={fuel} />
         <StatusIndicators

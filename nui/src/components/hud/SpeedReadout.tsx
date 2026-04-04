@@ -3,12 +3,19 @@ import styles from './hud.module.css';
 
 interface SpeedReadoutProps {
   speed: number;
+  gear: number; // -1=R, 0=N, 1-6=forward
   unit: 'kmh' | 'mph';
+}
+
+function formatGear(gear: number): string {
+  if (gear === -1) return 'R';
+  if (gear === 0) return 'N';
+  return String(gear);
 }
 
 const FLASH_DELTA = 10;
 
-export const SpeedReadout = memo(function SpeedReadout({ speed, unit }: SpeedReadoutProps) {
+export const SpeedReadout = memo(function SpeedReadout({ speed, gear, unit }: SpeedReadoutProps) {
   const prevSpeed = useRef(speed);
   const valueRef = useRef<HTMLDivElement>(null);
 
@@ -28,8 +35,13 @@ export const SpeedReadout = memo(function SpeedReadout({ speed, unit }: SpeedRea
       <div ref={valueRef} className={styles.speedValue}>
         {speed}
       </div>
-      <div className={styles.speedUnit}>
-        {unit === 'mph' ? 'MPH' : 'KM/H'}
+      <div className={styles.speedMeta}>
+        <span className={`${styles.gearInline} ${gear === 0 ? styles.gearNeutral : ''}`}>
+          {formatGear(gear)}
+        </span>
+        <span className={styles.speedUnit}>
+          {unit === 'mph' ? 'MPH' : 'KM/H'}
+        </span>
       </div>
     </div>
   );
