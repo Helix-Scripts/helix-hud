@@ -3,11 +3,13 @@
 --- Performance target: < 0.01ms idle resmon
 
 local isHudVisible = false
+local isUserVisible = true       -- User intent (toggled by /hud and setVisible export)
 local isNuiReady = false
 local isPauseMenuActive = false
 local isPlayerLoaded = false
 local isRadarVisible = false
 local minimapScaleform = 0
+local minimapPositioned = false  -- Track whether minimap sizing has been applied
 
 --- Player info (event-driven, not polled)
 local playerInfo = {
@@ -128,23 +130,20 @@ end
 
 --- Handle player data response from server
 RegisterNetEvent('helix_hud:playerData', function(data)
-    if data.cash ~= nil then
-        playerInfo.cash = data.cash
-    end
-    if data.bank ~= nil then
-        playerInfo.bank = data.bank
-    end
-    if data.job ~= nil then
-        playerInfo.job = data.job
-    end
+    if type(data) ~= 'table' then return end
+    if type(data.cash) == 'number' then playerInfo.cash = data.cash end
+    if type(data.bank) == 'number' then playerInfo.bank = data.bank end
+    if type(data.job) == 'string' then playerInfo.job = data.job end
 end)
 
 -- ---------------------------------------------------------------------------
 -- Framework Event Listeners (money/job changes — no polling needed)
 -- ---------------------------------------------------------------------------
 
-local function registerFrameworkEvents()
-    local fw = exports['helix_lib']:bridge_framework()
+--- Register framework-specific event listeners for money/job updates.
+--- Accepts framework identifier from StatusModule.initCache to avoid duplicate export call.
+---@param fw string|nil Framework name ('qbox', 'qbcore', 'esx', or nil)
+local function registerFrameworkEvents(fw)
     if not fw then
         return
     end
@@ -167,7 +166,7 @@ local function registerFrameworkEvents()
             isRadarVisible = false
             fetchPlayerInfo()
             if isNuiReady then
-                setHudVisible(true)
+                setHudVisible(isUserVisible and not isPauseMenuActive)
                 sendHudUpdateForced()
             end
         end)
@@ -194,7 +193,7 @@ local function registerFrameworkEvents()
             isRadarVisible = false
             fetchPlayerInfo()
             if isNuiReady then
-                setHudVisible(true)
+                setHudVisible(isUserVisible and not isPauseMenuActive)
                 sendHudUpdateForced()
             end
         end)
@@ -205,7 +204,15 @@ end
 -- Exports — allow other resources to control HUD visibility
 -- ---------------------------------------------------------------------------
 
-exports('setVisible', setHudVisible)
+--- Set user-intended visibility and update effective HUD state
+---@param visible boolean
+local function setUserVisible(visible)
+    isUserVisible = visible
+    local effective = isUserVisible and not isPauseMenuActive
+    setHudVisible(effective)
+end
+
+exports('setVisible', setUserVisible)
 exports('isVisible', function()
     return isHudVisible
 end)
@@ -215,7 +222,7 @@ end)
 -- ---------------------------------------------------------------------------
 
 RegisterCommand('hud', function()
-    setHudVisible(not isHudVisible)
+    setUserVisible(not isUserVisible)
 end, false)
 
 TriggerEvent('chat:addSuggestion', '/hud', 'Toggle HUD visibility')
@@ -231,7 +238,7 @@ RegisterNUICallback('hudReady', function(_, cb)
     -- Send initial config but DON'T show HUD until player is loaded
     sendHudConfig()
     if isPlayerLoaded then
-        setHudVisible(true)
+        setHudVisible(isUserVisible and not isPauseMenuActive)
         sendHudUpdateForced()
     end
 end)
@@ -295,11 +302,13 @@ local function startVehicleThread()
                         VehicleModule.reset()
                         sendHudUpdate()
                     end
-                    -- Enforce radar off every tick when on foot.
-                    -- Other resources (qbx_core, spawnmanager) may re-enable
-                    -- radar during spawn flow — we can't rely on event timing.
-                    DisplayRadar(false)
-                    isRadarVisible = false
+                    -- Only call DisplayRadar(false) on the transition from visible to hidden,
+                    -- not every tick. Other resources may re-enable radar, but redundant
+                    -- native calls are wasteful — the native HUD thread handles enforcement.
+                    if isRadarVisible then
+                        DisplayRadar(false)
+                        isRadarVisible = false
+                    end
                 end
             end
             Wait(Config.updateIntervals.vehicle)
@@ -318,7 +327,9 @@ local function startPauseMenuThread()
             local paused = IsPauseMenuActive()
             if paused ~= isPauseMenuActive then
                 isPauseMenuActive = paused
-                setHudVisible(not paused)
+                -- Derive effective visibility from user intent + pause state
+                local effective = isUserVisible and not isPauseMenuActive
+                setHudVisible(effective)
             end
             Wait(500)
         end
@@ -353,16 +364,21 @@ local function startNativeHudThread()
                     EndScaleformMovieMethod()
                 end
 
-                -- Enforce minimap sizing every frame when radar is visible.
-                -- On fresh login, the game or other resources can enable bigmap
-                -- mode during the spawn flow. SetMinimapComponentPosition only
-                -- applies to the normal minimap — bigmap ignores it entirely.
-                -- Forcing bigmap off each frame ensures our sizing always wins.
+                -- Minimap sizing: only reposition when not yet applied or when
+                -- bigmap state changed. Checking IsBigmapActive each frame is
+                -- cheap (single native), while SetMinimapComponentPosition is not.
                 if isRadarVisible then
-                    SetRadarBigmapEnabled(false, false)
-                    SetMinimapComponentPosition('minimap', 'L', 'B', -0.02, -0.025, 0.20, 0.18)
-                    SetMinimapComponentPosition('minimap_mask', 'L', 'B', -0.02, 0.0, 0.16, 0.20)
-                    SetMinimapComponentPosition('minimap_blur', 'L', 'B', -0.025, 0.01, 0.32, 0.30)
+                    local bigmapActive = IsBigmapActive()
+                    if bigmapActive then
+                        SetRadarBigmapEnabled(false, false)
+                        minimapPositioned = false -- force re-apply after bigmap toggle
+                    end
+                    if not minimapPositioned then
+                        SetMinimapComponentPosition('minimap', 'L', 'B', -0.02, -0.025, 0.20, 0.18)
+                        SetMinimapComponentPosition('minimap_mask', 'L', 'B', -0.02, 0.0, 0.16, 0.20)
+                        SetMinimapComponentPosition('minimap_blur', 'L', 'B', -0.025, 0.01, 0.32, 0.30)
+                        minimapPositioned = true
+                    end
                 end
 
                 Wait(0)
@@ -419,11 +435,11 @@ CreateThread(function()
     Wait(1000)
 
     -- Cache framework + core objects ONCE (never changes at runtime)
-    StatusModule.initCache()
+    local framework = StatusModule.initCache()
 
     playerInfo.serverId = GetPlayerServerId(PlayerId())
 
-    registerFrameworkEvents()
+    registerFrameworkEvents(framework)
     fetchPlayerInfo()
     setupMinimap()
 
@@ -438,7 +454,7 @@ CreateThread(function()
     if isPlayerLoaded and isNuiReady then
         DisplayRadar(false)
         isRadarVisible = false
-        setHudVisible(true)
+        setHudVisible(isUserVisible and not isPauseMenuActive)
         sendHudUpdateForced()
     end
 

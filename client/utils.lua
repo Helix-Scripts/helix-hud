@@ -33,6 +33,10 @@ function HudUtils.getVehicleSpeed(vehicle)
     return HudUtils.round(speedMs * 3.6) -- m/s to km/h
 end
 
+--- Cached result of fuel script auto-detection (resolved once on first call)
+---@type string|nil
+local resolvedFuelScript = nil
+
 --- Detect the fuel script in use and get the fuel level
 ---@param vehicle integer Vehicle entity handle
 ---@return number fuel 0-100
@@ -40,15 +44,18 @@ function HudUtils.getVehicleFuel(vehicle)
     local fuelScript = Config.vehicle.fuelScript
 
     if fuelScript == 'auto' then
-        if GetResourceState('ox_fuel') == 'started' then
-            fuelScript = 'ox_fuel'
-        elseif GetResourceState('cdn-fuel') == 'started' then
-            fuelScript = 'cdn-fuel'
-        elseif GetResourceState('LegacyFuel') == 'started' then
-            fuelScript = 'LegacyFuel'
-        else
-            fuelScript = 'native'
+        if resolvedFuelScript == nil then
+            if GetResourceState('ox_fuel') == 'started' then
+                resolvedFuelScript = 'ox_fuel'
+            elseif GetResourceState('cdn-fuel') == 'started' then
+                resolvedFuelScript = 'cdn-fuel'
+            elseif GetResourceState('LegacyFuel') == 'started' then
+                resolvedFuelScript = 'LegacyFuel'
+            else
+                resolvedFuelScript = 'native'
+            end
         end
+        fuelScript = resolvedFuelScript
     end
 
     if fuelScript == 'ox_fuel' then

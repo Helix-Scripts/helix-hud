@@ -10,7 +10,8 @@ local lastRequest = {}
 local REQUEST_COOLDOWN = 5
 
 AddEventHandler('playerDropped', function()
-    lastRequest[source] = nil
+    local src = source
+    lastRequest[src] = nil
 end)
 
 --- Handle player data request from client (rate-limited)

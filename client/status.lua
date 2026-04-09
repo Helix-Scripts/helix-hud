@@ -31,6 +31,8 @@ local cachedQBCore = nil
 local cachedESX = nil
 
 --- Initialize framework cache. Called once from main.lua init.
+--- Returns the detected framework name for reuse by callers.
+---@return string|nil framework The detected framework name
 function StatusModule.initCache()
     local ok, fw = pcall(function()
         return exports['helix_lib']:bridge_framework()
@@ -48,6 +50,15 @@ function StatusModule.initCache()
     elseif cachedFramework == 'esx' then
         pcall(function() cachedESX = exports['es_extended']:getSharedObject() end)
     end
+
+    -- Warn if hunger/thirst enabled but no framework detected to provide values
+    if not cachedFramework then
+        if Config.elements.hunger or Config.elements.thirst then
+            print('[helix_hud] ^3WARNING: hunger/thirst elements enabled but no framework detected — values will remain at defaults (100)^0')
+        end
+    end
+
+    return cachedFramework
 end
 
 --- Get the current cached status data
@@ -92,6 +103,9 @@ function StatusModule.poll()
                 end
             end
         end
+    -- NOTE: When no framework is detected (standalone mode), hunger/thirst/stress
+    -- retain their defaults (100/100/0) since there is no provider to update them.
+    -- A one-time warning is logged at init if these elements are enabled without a framework.
     elseif cachedFramework == 'esx' then
         if cachedESX then
             local playerData = cachedESX.GetPlayerData()
@@ -112,7 +126,11 @@ function StatusModule.poll()
         cachedStatus.health = 0
         cachedStatus.isDead = true
     else
-        cachedStatus.health = HudUtils.clamp(HudUtils.round(((rawHealth - 100) / (maxHealth - 100)) * 100), 0, 100)
+        if maxHealth <= 100 then
+            cachedStatus.health = 0
+        else
+            cachedStatus.health = HudUtils.clamp(HudUtils.round(((rawHealth - 100) / (maxHealth - 100)) * 100), 0, 100)
+        end
         cachedStatus.isDead = false
     end
 end
