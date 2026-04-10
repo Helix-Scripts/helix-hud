@@ -1,5 +1,7 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import type { HudState, HudConfig, NuiMessage, HudPositions } from '../types';
+import { isEnvBrowser } from '../utils/envBrowser';
+import { MOCK_HUD_STATE } from '../utils/mockData';
 
 const DEFAULT_POSITIONS: HudPositions = {
   vehicleCluster: { bottom: 40, right: 60 },
@@ -72,6 +74,17 @@ export function useHudData() {
     window.addEventListener('message', handleMessage);
     return () => window.removeEventListener('message', handleMessage);
   }, [handleMessage]);
+
+  // In browser dev mode, seed mock data so the HUD renders visibly
+  useEffect(() => {
+    if (!isEnvBrowser()) return;
+
+    // Make the HUD visible
+    setVisible(true);
+
+    // Apply mock state
+    setState(prev => ({ ...prev, ...MOCK_HUD_STATE }));
+  }, []);
 
   return { visible, state, config, showValues };
 }
