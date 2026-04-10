@@ -3,5 +3,5 @@
  * rather than inside FiveM's CEF/NUI environment.
  */
 export function isEnvBrowser(): boolean {
-  return !(window as any).invokeNative;
+  return !(window as unknown as { invokeNative?: unknown }).invokeNative;
 }
