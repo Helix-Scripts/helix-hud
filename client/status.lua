@@ -43,18 +43,26 @@ function StatusModule.initCache()
 
     if cachedFramework == 'qbox' or cachedFramework == 'qbcore' then
         -- Try qbx_core first (Qbox), fall back to qb-core
-        pcall(function() cachedQBCore = exports['qbx_core']:GetCoreObject() end)
+        pcall(function()
+            cachedQBCore = exports['qbx_core']:GetCoreObject()
+        end)
         if not cachedQBCore then
-            pcall(function() cachedQBCore = exports['qb-core']:GetCoreObject() end)
+            pcall(function()
+                cachedQBCore = exports['qb-core']:GetCoreObject()
+            end)
         end
     elseif cachedFramework == 'esx' then
-        pcall(function() cachedESX = exports['es_extended']:getSharedObject() end)
+        pcall(function()
+            cachedESX = exports['es_extended']:getSharedObject()
+        end)
     end
 
     -- Warn if hunger/thirst enabled but no framework detected to provide values
     if not cachedFramework then
         if Config.elements.hunger or Config.elements.thirst then
-            print('[helix_hud] ^3WARNING: hunger/thirst elements enabled but no framework detected — values will remain at defaults (100)^0')
+            print(
+                '[helix_hud] ^3WARNING: hunger/thirst elements enabled but no framework detected — values will remain at defaults (100)^0'
+            )
         end
     end
 

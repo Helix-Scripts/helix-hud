@@ -5,7 +5,6 @@
 require('tests.helpers.natives')
 
 describe('helix_hud server', function()
-
     -- Load the server script (registers events/threads)
     -- We need to load it once; handlers persist across tests.
     local loaded = false
@@ -222,8 +221,10 @@ describe('config.lua', function()
     it('has valid vehicle config', function()
         dofile('config.lua')
         assert.is_boolean(Config.vehicle.enabled)
-        assert.is_true(Config.vehicle.speedUnit == 'kmh' or Config.vehicle.speedUnit == 'mph',
-            'speedUnit must be kmh or mph')
+        assert.is_true(
+            Config.vehicle.speedUnit == 'kmh' or Config.vehicle.speedUnit == 'mph',
+            'speedUnit must be kmh or mph'
+        )
         assert.is_not_nil(Config.vehicle.fuelScript)
         assert.is_boolean(Config.vehicle.seatbelt)
     end)

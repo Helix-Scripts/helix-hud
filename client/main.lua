@@ -3,13 +3,13 @@
 --- Performance target: < 0.01ms idle resmon
 
 local isHudVisible = false
-local isUserVisible = true       -- User intent (toggled by /hud and setVisible export)
+local isUserVisible = true -- User intent (toggled by /hud and setVisible export)
 local isNuiReady = false
 local isPauseMenuActive = false
 local isPlayerLoaded = false
 local isRadarVisible = false
 local minimapScaleform = 0
-local minimapPositioned = false  -- Track whether minimap sizing has been applied
+local minimapPositioned = false -- Track whether minimap sizing has been applied
 
 --- Player info (event-driven, not polled)
 local playerInfo = {
@@ -130,10 +130,18 @@ end
 
 --- Handle player data response from server
 RegisterNetEvent('helix_hud:playerData', function(data)
-    if type(data) ~= 'table' then return end
-    if type(data.cash) == 'number' then playerInfo.cash = data.cash end
-    if type(data.bank) == 'number' then playerInfo.bank = data.bank end
-    if type(data.job) == 'string' then playerInfo.job = data.job end
+    if type(data) ~= 'table' then
+        return
+    end
+    if type(data.cash) == 'number' then
+        playerInfo.cash = data.cash
+    end
+    if type(data.bank) == 'number' then
+        playerInfo.bank = data.bank
+    end
+    if type(data.job) == 'string' then
+        playerInfo.job = data.job
+    end
 end)
 
 -- ---------------------------------------------------------------------------
@@ -270,7 +278,7 @@ local function startStatusThread()
         while true do
             if isHudVisible and not isPauseMenuActive then
                 StatusModule.poll()
-                sendHudUpdate()  -- diffed — skips NUI IPC when nothing changed
+                sendHudUpdate() -- diffed — skips NUI IPC when nothing changed
             end
             Wait(Config.updateIntervals.health)
         end
@@ -345,12 +353,12 @@ local function startNativeHudThread()
         while true do
             if isHudVisible then
                 -- Hide native HUD text overlays
-                HideHudComponentThisFrame(3)   -- CASH
-                HideHudComponentThisFrame(4)   -- MP_CASH
-                HideHudComponentThisFrame(6)   -- VEHICLE_NAME
-                HideHudComponentThisFrame(7)   -- AREA_NAME
-                HideHudComponentThisFrame(8)   -- VEHICLE_CLASS
-                HideHudComponentThisFrame(9)   -- STREET_NAME
+                HideHudComponentThisFrame(3) -- CASH
+                HideHudComponentThisFrame(4) -- MP_CASH
+                HideHudComponentThisFrame(6) -- VEHICLE_NAME
+                HideHudComponentThisFrame(7) -- AREA_NAME
+                HideHudComponentThisFrame(8) -- VEHICLE_CLASS
+                HideHudComponentThisFrame(9) -- STREET_NAME
 
                 -- Suppress native health/armor bars below minimap.
                 -- These bars are rendered inside the minimap scaleform (minimap.gfx).

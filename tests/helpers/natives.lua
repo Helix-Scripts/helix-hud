@@ -45,7 +45,9 @@ function GetCurrentResourceName()
 end
 
 function GetResourceMetadata(resource, key, index)
-    if key == 'version' then return '1.0.0' end
+    if key == 'version' then
+        return '1.0.0'
+    end
     return nil
 end
 
@@ -156,7 +158,9 @@ exports = setmetatable({}, {
                 if _exports[resource] and _exports[resource][fn] then
                     return _exports[resource][fn]
                 end
-                return function() return nil end
+                return function()
+                    return nil
+                end
             end,
         })
     end,

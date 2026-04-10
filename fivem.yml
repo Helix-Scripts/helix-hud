@@ -159,3 +159,64 @@ globals:
     any: true
   HudUtils:
     any: true
+  LocalPlayer:
+    property: read-only
+  # Additional GTA natives
+  DisplayRadar:
+    any: true
+  SetMinimapComponentPosition:
+    any: true
+  HideHudComponentThisFrame:
+    any: true
+  SetRadarBigmapEnabled:
+    any: true
+  UnlockMinimapAngle:
+    any: true
+  IsBigmapActive:
+    any: true
+  IsEntityDead:
+    any: true
+  GetVehicleCurrentGear:
+    any: true
+  GetVehicleEngineHealth:
+    any: true
+  BeginScaleformMovieMethod:
+    any: true
+  EndScaleformMovieMethod:
+    any: true
+  ScaleformMovieMethodAddParamInt:
+    any: true
+  HasScaleformMovieLoaded:
+    any: true
+  RequestScaleformMovie:
+    any: true
+  # busted test framework globals
+  describe:
+    any: true
+  it:
+    any: true
+  before_each:
+    any: true
+  setup:
+    any: true
+  pending:
+    any: true
+  # Test helper globals (tests/helpers/natives.lua)
+  FireNetEvent:
+    any: true
+  FireEvent:
+    any: true
+  GetTriggeredClientEvents:
+    any: true
+  ClearTriggeredClientEvents:
+    any: true
+  AdvanceMockTime:
+    any: true
+  MockExport:
+    any: true
+  RunMockThreads:
+    any: true
+  ClearMockPrints:
+    any: true
+  GetMockPrints:
+    any: true
