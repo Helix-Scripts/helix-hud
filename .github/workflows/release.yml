@@ -1,12 +1,13 @@
 name: Release
 
 on:
-  push:
-    tags: ['v*']
+  release:
+    types: [published]
+  workflow_dispatch:
 
 jobs:
   release:
-    name: Release
     uses: Helix-Scripts/.github/.github/workflows/release.yml@main
     permissions:
       contents: write
+
